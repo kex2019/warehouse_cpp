@@ -47,6 +47,7 @@ public:
     int getTimeForSequence(const vector<int>& idxSeq) const;
     const vector<vector<bool>>& getWalkable() const;
     const vector<Position>& getPackageLocations() const;
+    const vector<vector<int>>& getPathLengths() const;
     string to_string();
 };
 

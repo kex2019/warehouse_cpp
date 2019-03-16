@@ -122,11 +122,15 @@ int Warehouse::getLengthToDrop(int a) {
 int Warehouse::getLengthBetween(int a, int b) {
     return pathLengthBetween[a+2][b+2];
 }
-
+const vector<vector<int>>& Warehouse::getPathLengths() const {
+    return this->pathLengthBetween;
+}
 
 int Warehouse::getTimeForSequence(const vector<int> &idxSeq) const {
     // Calculate the time it takes to grab this sequence
-    //static_assert(idxSeq.size() > 0, "idxSeq must have at least one element");
+    if(idxSeq.size() <= 0) {
+        throw runtime_error("idSeq must have at least one element");
+    }
     int timeFromStart = pathLengthBetween[0][idxSeq[0]];
     int timeToEnd = pathLengthBetween[idxSeq.back()][1];
     int totalTime = 0;
