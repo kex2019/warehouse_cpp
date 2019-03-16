@@ -5,6 +5,26 @@
 #include <set>
 #include <algorithm>
 
+int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& batches, int n_robots) {
+    set<int> earliest_robots;
+    set<int, greater<>> latest_robots;
+    for(int i = 0; i < batches.size(); i++) {
+        if(n_robots > earliest_robots.size()) {
+            earliest_robots.insert(warehouse.getTimeForSequence(batches[i]));
+            latest_robots.insert(warehouse.getTimeForSequence(batches[i]));
+        } else {
+            // Remove the earliest robot
+            int earliest = *earliest_robots.begin();
+            earliest_robots.erase(earliest_robots.begin());
+            earliest_robots.insert(warehouse.getTimeForSequence(batches[i]) + earliest);
+            latest_robots.insert(warehouse.getTimeForSequence(batches[i]) + earliest);
+        }
+    }
+    
+    return *latest_robots.begin();
+}
+
+
 Warehouse generateRandomWarehouse(WarehouseInfo info) {
     if (info.crossAilesWidth < 2) {
         info.crossAilesWidth = 2; // We must be at least 2 wide to be able to drop things off
