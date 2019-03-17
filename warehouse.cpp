@@ -5,23 +5,64 @@
 #include <set>
 #include <algorithm>
 
-int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& batches, int n_robots) {
-    set<int> earliest_robots;
-    set<int, greater<>> latest_robots;
+void inlineCerrVec(const vector<int>& vec) {
+    cerr << "{ ";
+    for(auto i : vec ) {
+        cerr << i << " ";
+    }
+    cerr << "}";
+}
+
+void inlineCoutVec(const vector<int>& vec) {
+    cerr << "{ ";
+    for(auto i : vec ) {
+        cerr << i << " ";
+    }
+    cerr << "}";
+}
+
+
+int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& batches, int nRobots, int robotCapacity) {
+    vector<bool> takenPackages(warehouse.getPackageLocations().size(), false);
+    set<int> earliestRobots;
+    set<int, greater<>> latestRobots;
+    bool invalid = false;
+
     for(int i = 0; i < batches.size(); i++) {
-        if(n_robots > earliest_robots.size()) {
-            earliest_robots.insert(warehouse.getTimeForSequence(batches[i]));
-            latest_robots.insert(warehouse.getTimeForSequence(batches[i]));
+        if(batches[i].size() > robotCapacity) {
+            cerr << "Batch: ";
+            inlineCerrVec(batches[i]);
+            cerr << " has size: " << batches[i].size() << " while the robot can only carry: " << robotCapacity << endl;
+            invalid = true;
+        }
+        int tseq = warehouse.getTimeForSequence(batches[i]);
+        if(nRobots > earliestRobots.size()) {
+            earliestRobots.insert(tseq);
+            latestRobots.insert(tseq);
         } else {
             // Remove the earliest robot
-            int earliest = *earliest_robots.begin();
-            earliest_robots.erase(earliest_robots.begin());
-            earliest_robots.insert(warehouse.getTimeForSequence(batches[i]) + earliest);
-            latest_robots.insert(warehouse.getTimeForSequence(batches[i]) + earliest);
+            int earliest = *earliestRobots.begin();
+            earliestRobots.erase(earliestRobots.begin());
+            earliestRobots.insert(tseq + earliest);
+            latestRobots.insert(tseq + earliest);
+        }
+        for(int j : batches[i]) {
+            takenPackages[j] = true;
         }
     }
+
+    for(int i = 0; i < takenPackages.size(); i++) {
+        if(!takenPackages[i]) {
+            cerr << "Package " << i << " was not taken" << endl;
+            invalid = true;
+        }
+    }
+
+    if(invalid) {
+        throw runtime_error("The solution was invalid, check stderr for reason");
+    }
     
-    return *latest_robots.begin();
+    return *latestRobots.begin();
 }
 
 
@@ -55,7 +96,9 @@ Warehouse generateRandomWarehouse(WarehouseInfo info) {
         }
     }
     random_device dev;
+    
     mt19937 rng(dev());
+//    mt19937 rng(12321);
     uniform_int_distribution<std::mt19937::result_type> widthDist(0,info.aisles*2-1);
     uniform_int_distribution<std::mt19937::result_type> heightDist(0,info.crossAiles);
     uniform_int_distribution<std::mt19937::result_type> heightAddDist(0,info.shelfHeight-1);
@@ -72,9 +115,9 @@ Warehouse generateRandomWarehouse(WarehouseInfo info) {
         }while(usedPositions.find({y,x}) != usedPositions.end());
         packageLocations[i] = {y,x};
     }
-    for(int i = 0; i < packageLocations.size(); i++) {
-        cout << packageLocations[i].first << ", " << packageLocations[i].second<< endl;
-    }
+//    for(int i = 0; i < packageLocations.size(); i++) {
+//        cout << packageLocations[i].first << ", " << packageLocations[i].second<< endl;
+//    }
     return Warehouse(walkable, packageLocations);
 }
 
@@ -85,8 +128,6 @@ Warehouse::Warehouse(vector<vector<bool>> walkable, vector<Position> packageLoca
     this->start = {0,0};
     auto fromdrop = calcPathLengthFrom(drop);
     auto fromstart = calcPathLengthFrom(start);
-    vector<int> lenFromDrop(packageLocations.size() + 2);
-    vector<int> lenFromStart(packageLocations.size() + 2);
     this->pathLengthBetween = vector<vector<int>>(packageLocations.size() + 2, vector<int>(packageLocations.size() + 2));
     for(int i = 0; i < packageLocations.size(); i++) {
         pathLengthBetween[i].resize(packageLocations.size() + 2);
@@ -94,31 +135,32 @@ Warehouse::Warehouse(vector<vector<bool>> walkable, vector<Position> packageLoca
         pathLengthBetween[0][i+2] = fromstart[packageLocations[i].first][packageLocations[i].second];
 
         auto fromPackage = calcPathLengthFrom(packageLocations[i]);
-        pathLengthBetween[i+2][0] = lenFromStart[i+2];
-        pathLengthBetween[i+2][1] = lenFromDrop[i+2];
+        pathLengthBetween[i+2][0] = fromstart[packageLocations[i].first][packageLocations[i].second];
+        pathLengthBetween[i+2][1] = fromdrop[packageLocations[i].first][packageLocations[i].second];
         
         for(int j = 0; j < packageLocations.size(); j++) {
-            pathLengthBetween[i+2][j+2] = fromPackage[packageLocations[i].first][packageLocations[i].second];
+            pathLengthBetween[i+2][j+2] = fromPackage[packageLocations[j].first][packageLocations[j].second];
         }
     }
 }
 
-void push_neighbours(queue<Position>& q, Position a) {
+void push_neighbours(queue<pair<Position,Position>>& q, Position a) {
     vector<Position> deltas{{1,0},{-1,0},{0,1},{0,-1}};
     for (auto& p : deltas) {
-        q.push(Position(a.first + p.first, a.second + p.second));
+        q.push({Position(a.first + p.first, a.second + p.second), a});
     }
 }
 
 vector<vector<int>> Warehouse::calcPathLengthFrom(Position a) {
     // Do BFS between a and b
     vector<vector<int>> lens(this->height, vector<int>(this->width, -1));
-    queue<Position> q;
-    lens[a.first][a.second] = -1;
+    queue<pair<Position,Position>> q;
+    lens[a.first][a.second] = 0;
     push_neighbours(q, a);
-    q.push(a);
     while(!q.empty()) {
-        auto cur = q.front();
+        auto top = q.front();
+        auto cur = top.first;
+        auto prev = top.second;
         q.pop();
         if (cur.first < 0 || cur.first >= this->height || cur.second < 0 || cur.second >= this->width) {
             continue;
@@ -126,7 +168,7 @@ vector<vector<int>> Warehouse::calcPathLengthFrom(Position a) {
         if(lens[cur.first][cur.second] != -1) {
             continue;
         }
-        lens[cur.first][cur.second]++;
+        lens[cur.first][cur.second] = lens[prev.first][prev.second] + 1;
         push_neighbours(q, cur);
     }
 
@@ -151,11 +193,13 @@ int Warehouse::getTimeForSequence(const vector<int> &idxSeq) const {
     if(idxSeq.size() <= 0) {
         throw runtime_error("idSeq must have at least one element");
     }
-    int timeFromStart = pathLengthBetween[0][idxSeq[0]];
-    int timeToEnd = pathLengthBetween[idxSeq.back()][1];
+    int timeFromStart = pathLengthBetween[0][idxSeq[0] + 2];
+    int timeToEnd = pathLengthBetween[idxSeq.back() + 2][1];
+//    inlineCoutVec(idxSeq);
+//    cout << ":: TimeStart: " << timeFromStart << ", timeEnd: " << timeToEnd << endl;
     int totalTime = 0;
     for(int i = 0; i < idxSeq.size() - 1; i++) {
-        int timeBetween = pathLengthBetween[idxSeq[i]][idxSeq[i+1]];
+        int timeBetween = pathLengthBetween[idxSeq[i] + 2][idxSeq[i+1] + 2];
         totalTime += timeBetween;
     }
     return totalTime + timeFromStart + timeToEnd;
