@@ -2,6 +2,7 @@
 #include <tuple>
 #include <algorithm>
 #include <random>
+#include <string>
 #include "warehouse.h"
 #include "algos/cw.h"
 #include "algos/greedy.h"
@@ -16,7 +17,7 @@ vector<long> generateSeeds(int N) {
 }
 
 template<typename T>
-vector<int> run(T t, const WarehouseInfo& info, int nRobots, int robotCapacity, const vector<long>& seeds) {
+vector<int> run(T t, string machineName, const WarehouseInfo& info, int nRobots, int robotCapacity, const vector<long>& seeds) {
     vector<int> results(seeds.size());
     for(int i = 0; i < seeds.size(); i++) {
         Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
@@ -36,10 +37,11 @@ int main() {
     info.shelfHeight = 10;
     info.packages = 40;
 
-    auto seeds = generateSeeds(100);
 
-    auto cws = run(cw::solve, info, 2, 5, seeds);
-    auto greedys = run(greedy::solve, info, 2, 5, seeds);
+    auto seeds = generateSeeds(100);
+    auto cws = run(cw::solve, "cws", info, 2, 5, seeds);
+    auto greedys = run(greedy::solve, "greedy", info, 2, 5, seeds);
+
     int accCWS = 0;
     int accGreedys = 0;
     for(int i = 0; i < seeds.size(); i++) {
