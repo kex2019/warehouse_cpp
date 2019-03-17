@@ -15,30 +15,6 @@ vector<long> generateSeeds(int N) {
     return seeds;
 }
 
-// First is the solution time, second is the time it would take to take one package at a time
-vector<int> runCWs(const WarehouseInfo& info, int nRobots, int robotCapacity, const vector<long> &seeds) {
-    vector<int> results(seeds.size());
-    for(int i = 0; i < seeds.size(); i++) {
-        Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
-        auto batches = cw::solve(robotCapacity, warehouse);
-        int solTime =  evaluateSolutionTime(warehouse, batches, nRobots, robotCapacity);
-        results[i] = solTime;
-    }
-    cout << "Done with Cws" << endl;
-    return results;
-}
-
-vector<int> runGreedys(const WarehouseInfo& info, int nRobots, int robotCapacity, const vector<long>& seeds) {
-    vector<int> results(seeds.size());
-    for(int i = 0; i < seeds.size(); i++) {
-        Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
-        auto solution = greedy::solve(robotCapacity, warehouse);
-        auto score = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
-        results[i] = score;
-    }
-    return results;
-}
-
 template<typename T>
 vector<int> run(T t, const WarehouseInfo& info, int nRobots, int robotCapacity, const vector<long>& seeds) {
     vector<int> results(seeds.size());
@@ -63,7 +39,6 @@ int main() {
     auto seeds = generateSeeds(100);
 
     auto cws = run(cw::solve, info, 2, 5, seeds);
-//    auto cws = runCWs(info, 2, 5, seeds);
     auto greedys = run(greedy::solve, info, 2, 5, seeds);
     int accCWS = 0;
     int accGreedys = 0;
