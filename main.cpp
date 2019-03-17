@@ -1,36 +1,52 @@
 #include <iostream>
 #include <tuple>
 #include <algorithm>
+#include <random>
 #include "warehouse.h"
 #include "algos/cw.h"
+#include "algos/greedy.h"
 
-// First is the solution time, second is the time it would take to take one package at a time
-pair<int,int> runCW(Warehouse &warehouse, int nRobots, int robotCapacity) {
-    auto batches = cw::solve(robotCapacity, warehouse);
-/*    for(auto b : batches) {
-        cout << "{ ";
-        for(auto p : b) {
-            cout << p << " ";
-        }
-        cout << "}" << endl;
-    }*/
-    vector<vector<int>> naiveBatches(warehouse.getPackageLocations().size());
-    for(int i = 0; i < warehouse.getPackageLocations().size(); i++) {
-        naiveBatches[i].push_back(i);
+vector<long> generateSeeds(int N) {
+    random_device dev;
+    vector<long> seeds(N);
+    for(int i = 0; i < N; i++) {
+        seeds[i] = dev();
     }
-
-    int solTime =  evaluateSolutionTime(warehouse, batches, nRobots, robotCapacity);
-    int naiveTime = evaluateSolutionTime(warehouse, naiveBatches, nRobots, robotCapacity);
-    return {solTime, naiveTime};
+    return seeds;
 }
 
-vector<tuple<int,int,int>> runCWs(const WarehouseInfo& info, int nRobots, int robotCapacity) {
-    vector<tuple<int,int,int>> results(1000);
-    for(int i = 0; i < 1000; i++) {
-        Warehouse warehouse = generateRandomWarehouse(info);
-        auto ret = runCW(warehouse, nRobots, robotCapacity);
-        int savings = ret.second - ret.first;
-        results[i] = tuple<int,int,int>(ret.first, ret.second, savings);
+// First is the solution time, second is the time it would take to take one package at a time
+vector<int> runCWs(const WarehouseInfo& info, int nRobots, int robotCapacity, const vector<long> &seeds) {
+    vector<int> results(seeds.size());
+    for(int i = 0; i < seeds.size(); i++) {
+        Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
+        auto batches = cw::solve(robotCapacity, warehouse);
+        int solTime =  evaluateSolutionTime(warehouse, batches, nRobots, robotCapacity);
+        results[i] = solTime;
+    }
+    cout << "Done with Cws" << endl;
+    return results;
+}
+
+vector<int> runGreedys(const WarehouseInfo& info, int nRobots, int robotCapacity, const vector<long>& seeds) {
+    vector<int> results(seeds.size());
+    for(int i = 0; i < seeds.size(); i++) {
+        Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
+        auto solution = greedy::solve(robotCapacity, warehouse);
+        auto score = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
+        results[i] = score;
+    }
+    return results;
+}
+
+template<typename T>
+vector<int> run(T t, const WarehouseInfo& info, int nRobots, int robotCapacity, const vector<long>& seeds) {
+    vector<int> results(seeds.size());
+    for(int i = 0; i < seeds.size(); i++) {
+        Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
+        auto batches = t(robotCapacity, warehouse);
+        int solTime = evaluateSolutionTime(warehouse, batches, nRobots, robotCapacity);
+        results[i] = solTime;
     }
     return results;
 }
@@ -44,14 +60,19 @@ int main() {
     info.shelfHeight = 10;
     info.packages = 40;
 
-    auto ret = runCWs(info, 2, 5);
-    vector<int> savings(ret.size());
-    for(int i = 0; i < ret.size(); i++) {
-        savings[i] = get<2>(ret[i]);
+    auto seeds = generateSeeds(100);
+
+    auto cws = run(cw::solve, info, 2, 5, seeds);
+//    auto cws = runCWs(info, 2, 5, seeds);
+    auto greedys = run(greedy::solve, info, 2, 5, seeds);
+    int accCWS = 0;
+    int accGreedys = 0;
+    for(int i = 0; i < seeds.size(); i++) {
+        accCWS += cws[i];
+        accGreedys += greedys[i];
     }
-    sort(savings.begin(), savings.end());
-    int p95 = savings[savings.size() * 0.95];
-    cout << "95% savings: " << p95 << endl;
+
+    cout << "ACC cws: " << accCWS << ", ACC greedy: " << accGreedys << " greedy-cws/run: " << ((double)(accGreedys-accCWS))/(double)(seeds.size()) << endl;
     /*
     Warehouse warehouse = generateRandomWarehouse(info);
     std::cout << warehouse.to_string() << endl;

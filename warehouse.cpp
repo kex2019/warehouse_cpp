@@ -66,7 +66,7 @@ int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& batch
 }
 
 
-Warehouse generateRandomWarehouse(WarehouseInfo info) {
+Warehouse generateRandomWarehouse(WarehouseInfo info, long seed) {
     if (info.crossAilesWidth < 2) {
         info.crossAilesWidth = 2; // We must be at least 2 wide to be able to drop things off
     }
@@ -95,9 +95,9 @@ Warehouse generateRandomWarehouse(WarehouseInfo info) {
             }
         }
     }
-    random_device dev;
-    
-    mt19937 rng(dev());
+//    random_device dev;
+
+    mt19937 rng(seed);
 //    mt19937 rng(12321);
     uniform_int_distribution<std::mt19937::result_type> widthDist(0,info.aisles*2-1);
     uniform_int_distribution<std::mt19937::result_type> heightDist(0,info.crossAiles);
