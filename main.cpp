@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <random>
 #include <string>
+#include <fstream>
 #include "warehouse.h"
 #include "algos/cw.h"
 #include "algos/greedy.h"
@@ -15,6 +16,11 @@ vector<long> generateSeeds(int N) {
     }
     return seeds;
 }
+
+void exportStatistics(const vector<int>& results, int nRobots, int robotCapacity, const vector<long> &seeds) {
+
+}
+
 
 template<typename T>
 vector<int> run(T t, string machineName, const WarehouseInfo& info, int nRobots, int robotCapacity, const vector<long>& seeds) {

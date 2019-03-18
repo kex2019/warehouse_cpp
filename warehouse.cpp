@@ -21,6 +21,9 @@ void inlineCoutVec(const vector<int>& vec) {
     cerr << "}";
 }
 
+int evaluateSolutionTime(Warehouse & warehouse, const vector<int>& bacthes, int nRobots, int robotCapacity) {
+    return 0;
+}
 
 int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& batches, int nRobots, int robotCapacity) {
     vector<bool> takenPackages(warehouse.getPackageLocations().size(), false);

@@ -53,3 +53,4 @@ public:
 
 Warehouse generateRandomWarehouse(WarehouseInfo info, long seed);
 int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& bacthes, int nRobots, int robotCapacity);
+int evaluateSolutionTime(Warehouse & warehouse, const vector<int>& bacthes, int nRobots, int robotCapacity);
