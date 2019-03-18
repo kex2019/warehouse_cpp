@@ -44,7 +44,7 @@ public:
     int getLengthToStart(int a);
     int getLengthToDrop(int a);
     int getLengthBetween(int a, int b);
-    int getTimeForSequence(const vector<int>& idxSeq) const;
+    int getTimeForSequence(const vector<int>& idxSeq, int from = -1, int to = -1) const;
     const vector<vector<bool>>& getWalkable() const;
     const vector<Position>& getPackageLocations() const;
     const vector<vector<int>>& getPathLengths() const;
@@ -53,3 +53,7 @@ public:
 
 Warehouse generateRandomWarehouse(WarehouseInfo info, long seed);
 int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& bacthes, int nRobots, int robotCapacity);
+/*
+    Overloaded function that assumes each batch is of size robotCapacity (last batch can be of other size however)
+*/
+int evaluateSolutionTime(Warehouse & warehouse, const vector<int>& bacthes, int nRobots, int robotCapacity);

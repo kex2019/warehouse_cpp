@@ -4,6 +4,7 @@
 #include <random>
 #include <set>
 #include <algorithm>
+#include <cmath>
 
 void inlineCerrVec(const vector<int>& vec) {
     cerr << "{ ";
@@ -21,6 +22,36 @@ void inlineCoutVec(const vector<int>& vec) {
     cerr << "}";
 }
 
+int evaluateSolutionTime(Warehouse & warehouse, const vector<int>& batches, int nRobots, int robotCapacity) {
+    vector<bool> takenPackages(warehouse.getPackageLocations().size(), false);
+    set<int> earliestRobots;
+    set<int, greater<>> latestRobots;
+    bool invalid = false;
+
+    int nBatches = batches.size() / robotCapacity;
+    if(batches.size() % robotCapacity != 0) {
+        nBatches++;
+    }
+
+    for(int i = 0; i < nBatches; i++) {
+        int from = i * robotCapacity;
+        int to = std::min((i + 1) * robotCapacity, (int)batches.size());
+        int tseq = warehouse.getTimeForSequence(batches, from, to);
+        if(nRobots > earliestRobots.size()) {
+            earliestRobots.insert(tseq);
+            latestRobots.insert(tseq);
+        } else {
+            // Remove the earliest robot
+            int earliest = *earliestRobots.begin();
+            earliestRobots.erase(earliestRobots.begin());
+            earliestRobots.insert(tseq + earliest);
+            latestRobots.insert(tseq + earliest);
+        }
+    }
+
+    
+    return *latestRobots.begin();
+}
 
 int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& batches, int nRobots, int robotCapacity) {
     vector<bool> takenPackages(warehouse.getPackageLocations().size(), false);
@@ -188,7 +219,13 @@ const vector<vector<int>>& Warehouse::getPathLengths() const {
     return this->pathLengthBetween;
 }
 
-int Warehouse::getTimeForSequence(const vector<int> &idxSeq) const {
+int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) const {
+    if(from == -1) {
+        from = 0;
+    }
+    if(to == -1) {
+        to = idxSeq.size();
+    }
     // Calculate the time it takes to grab this sequence
     if(idxSeq.size() <= 0) {
         throw runtime_error("idSeq must have at least one element");
@@ -198,7 +235,7 @@ int Warehouse::getTimeForSequence(const vector<int> &idxSeq) const {
 //    inlineCoutVec(idxSeq);
 //    cout << ":: TimeStart: " << timeFromStart << ", timeEnd: " << timeToEnd << endl;
     int totalTime = 0;
-    for(int i = 0; i < idxSeq.size() - 1; i++) {
+    for(int i = from; i < to - 1; i++) {
         int timeBetween = pathLengthBetween[idxSeq[i] + 2][idxSeq[i+1] + 2];
         totalTime += timeBetween;
     }
