@@ -51,5 +51,5 @@ public:
     string to_string();
 };
 
-Warehouse generateRandomWarehouse(WarehouseInfo info);
-int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& bacthes, int n_robots);
+Warehouse generateRandomWarehouse(WarehouseInfo info, long seed);
+int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& bacthes, int nRobots, int robotCapacity);

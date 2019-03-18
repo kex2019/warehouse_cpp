@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include "../warehouse.h"
-using namespace std;
-// C&W algorithm for creating batches
-namespace cw {
+//Greedy algorithm that always takes the closest
+
+namespace greedy {
     vector<vector<int>> solve(int robotCapacity, const Warehouse &warehouse);
-}
+};
