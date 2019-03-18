@@ -4,5 +4,7 @@
 //Greedy algorithm that always takes the closest
 
 namespace greedy {
-    vector<vector<int>> solve(int robotCapacity, const Warehouse &warehouse);
+    struct greedy {
+        vector<vector<int>> solve(int robotCapacity, const Warehouse &warehouse);
+    };
 };

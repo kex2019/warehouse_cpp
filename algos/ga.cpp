@@ -8,7 +8,7 @@ vector<vector<int>> ga::Ga::solve(int robotCapacity, const Warehouse &warehouse)
 
 void ga::Ga::fitness(Chromosomes &chromosome, vector<int> &fitnesses) {
 
-  return {};
+  return;
 }
 
 vector<int> ga::Ga::select(Chromosomes &chromosomes, vector<int> &fitnesses) {
@@ -16,9 +16,9 @@ vector<int> ga::Ga::select(Chromosomes &chromosomes, vector<int> &fitnesses) {
 }
 
 void ga::Ga::crossover(Chromosomes &chromosomes, vector<int> &elitists) {
-  return {};
+  return;
 }
 
 void ga::Ga::mutate(Chromosomes &chromosomes, vector<int> &elitists) {
-  return {};
+  return;
 }

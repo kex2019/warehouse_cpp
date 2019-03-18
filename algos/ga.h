@@ -17,8 +17,8 @@ namespace ga {
 
     void fitness(Chromosomes &chromosomes, vector<int> &fitnesses);
     vector<int> select(Chromosomes &chromosomes, vector<int> &fitnesses);
-    void crossover(Chromosomes &chromosomes, vector<int> elitists);
-    void mutate(Chromosomes &chromosomes, vector<int> elitists);
+    void crossover(Chromosomes &chromosomes, vector<int> &elitists);
+    void mutate(Chromosomes &chromosomes, vector<int> &elitists);
 
     Ga(int population): population(population) {};
   };

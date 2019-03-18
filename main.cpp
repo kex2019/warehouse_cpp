@@ -28,7 +28,7 @@ vector<int> run(T t, string machineName, const WarehouseInfo& info, int nRobots,
     vector<int> results(seeds.size());
     for(int i = 0; i < seeds.size(); i++) {
         Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
-        auto batches = t(robotCapacity, warehouse);
+        auto batches = t.solve(robotCapacity, warehouse);
         int solTime = evaluateSolutionTime(warehouse, batches, nRobots, robotCapacity);
         results[i] = solTime;
     }
@@ -37,7 +37,7 @@ vector<int> run(T t, string machineName, const WarehouseInfo& info, int nRobots,
 
 int main() {
     WarehouseInfo info;
-    info.aisles = 4;
+    info.aisles = 3;
     info.aisleWidth = 2;
     info.crossAiles = 2;
     info.crossAilesWidth = 2;
@@ -47,9 +47,9 @@ int main() {
     auto G = ga::Ga(10);
 
     auto seeds = generateSeeds(100);
-    auto cws = run(cw::solve, "cws", info, 2, 5, seeds);
-    auto greedys = run(greedy::solve, "greedy", info, 2, 5, seeds);
-    auto ga = run(G.solve, "ga", info, 2, 5, seeds);
+    auto cws = run(cw::cw(), "cws", info, 2, 5, seeds);
+    auto greedys = run(greedy::greedy(), "greedy", info, 2, 5, seeds);
+    auto ga = run(G, "ga", info, 2, 5, seeds);
 
     int accCWS = 0;
     int accGreedys = 0;
