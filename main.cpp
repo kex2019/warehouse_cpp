@@ -7,6 +7,7 @@
 #include "warehouse.h"
 #include "algos/cw.h"
 #include "algos/greedy.h"
+#include "algos/ga.h"
 
 vector<long> generateSeeds(int N) {
     random_device dev;
@@ -43,10 +44,12 @@ int main() {
     info.shelfHeight = 10;
     info.packages = 40;
 
+    auto G = ga::Ga(10);
 
     auto seeds = generateSeeds(100);
     auto cws = run(cw::solve, "cws", info, 2, 5, seeds);
     auto greedys = run(greedy::solve, "greedy", info, 2, 5, seeds);
+    auto ga = run(G.solve, "ga", info, 2, 5, seeds);
 
     int accCWS = 0;
     int accGreedys = 0;
