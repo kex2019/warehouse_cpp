@@ -252,12 +252,13 @@ int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) c
         if(idxSeq[i] == -1) {
             continue; // This is a minus one, just keep on going
         }
+
         next = findFirstNonNegOne(idxSeq, next, to - 1);
         if(next >= to - 1) {
             break; // This grabs no more orders
         }
-
-        int timeBetween = pathLengthBetween[idxSeq[i] + 2][idxSeq[i+1] + 2];
+        
+        int timeBetween = pathLengthBetween[idxSeq[i] + 2][idxSeq[next] + 2];
         totalTime += timeBetween;
     }
     return totalTime + timeFromStart + timeToEnd;

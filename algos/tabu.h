@@ -19,7 +19,7 @@ namespace tabu {
         nswapgenerator(const vector<vector<int>> &solution) : solution(solution){}
         vector<vector<int>> next();
         bool eof();
-        vector<tuple<int,int,int,int>> getMove();
+        tuple<int,int,int,int> getMove();
     };
     class nshiftgenerator {
         int currentFirst = 0;
@@ -34,7 +34,7 @@ namespace tabu {
 //        vector<tuple<int,int,int>> getMove();
     };
 
-    struct tabu {
+    struct Tabu {
         vector<vector<int>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse);
     };
 
@@ -58,7 +58,7 @@ namespace tabu {
             tabusOrdered.insert(tabu);
         }
 
-        void isTabu(T t) {
+        bool isTabu(T t) {
             return tabusOrdered.find(t) != tabusOrdered.end();
         }
     };
