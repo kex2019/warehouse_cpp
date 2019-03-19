@@ -1,4 +1,5 @@
 #include "ga.h"
+#include "../warehouse.h"
 
 
 
@@ -6,7 +7,11 @@ vector<vector<int>> ga::Ga::solve(int robotCapacity, const Warehouse &warehouse)
   return {};
 }
 
-void ga::Ga::fitness(Chromosomes &chromosome, vector<int> &fitnesses) {
+void ga::Ga::fitness(Chromosomes &chromosome, vector<int> &fitnesses, const Warehouse &warehouse) {
+  for (int i = 0; i < chromosomes.size(); i++) {
+    int performance = warehouse.
+  }
+
 
   return;
 }

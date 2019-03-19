@@ -15,7 +15,7 @@ namespace ga {
     // This vector of vector of ints is a splitted chromosome
     vector<vector<int>> solve(int robotCapacity, const Warehouse &warehouse);
 
-    void fitness(Chromosomes &chromosomes, vector<int> &fitnesses);
+    void fitness(Chromosomes &chromosomes, vector<int> &fitnesses, const Warehouse &warehouse, int robotCapacity);
     vector<int> select(Chromosomes &chromosomes, vector<int> &fitnesses);
     void crossover(Chromosomes &chromosomes, vector<int> &elitists);
     void mutate(Chromosomes &chromosomes, vector<int> &elitists);
