@@ -218,6 +218,21 @@ void ga::Ga::crossovermutate(Chromosomes &chromosomes,
         swap(chromosomes[i][i1], chromosomes[i][i2]);
       }
 
+      // Empty data (For chromosome validation)
+      fill(this->numObsOrders.begin(), this->numObsOrders.end(), 0);
+      // vector with num orders
+      for (int j = 0; j < this->chromosomeSize; j++) {
+        if (chromosomes[i][j] != -1) {
+          this->numObsOrders[chromosomes[i][j]]++;
+        }
+      }
+
+      for(int j = 0; j < numObsOrders.size(); j++) {
+        if(numObsOrders[j] != 1) {
+          throw runtime_error("An order did not occur exactly once after crossover");
+        }
+      }
+
     }
   }
 }
