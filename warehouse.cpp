@@ -54,7 +54,7 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& batches
 }
 
 int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>& batches, int nRobots, int robotCapacity) {
-    vector<bool> takenPackages(warehouse.getPackageLocations().size(), false);
+    vector<int> takenPackages(warehouse.getPackageLocations().size(), 0);
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
     bool invalid = false;
@@ -81,13 +81,17 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>&
             latestRobots.insert(tseq + earliest);
         }
         for(int j : batches[i]) {
-            takenPackages[j] = true;
+            takenPackages[j]++;
         }
     }
 
     for(int i = 0; i < takenPackages.size(); i++) {
-        if(!takenPackages[i]) {
+        if(takenPackages[i] == 0) {
             cerr << "Package " << i << " was not taken" << endl;
+            invalid = true;
+        }
+        if(takenPackages[i] > 1) {
+            cerr << "Package " << i << " was taken " << takenPackages[i] << " times" << endl;
             invalid = true;
         }
     }

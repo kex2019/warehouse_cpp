@@ -24,7 +24,7 @@ vector<long> generateSeeds(int N) {
 class ResultHandler {
     string name;
     ofstream resultFile;
-public:
+public: 
     ResultHandler(string dir, std::string name, bool overwrite = false) : name(name) {
         auto flags = ios::out;
         if(overwrite)
@@ -42,12 +42,19 @@ public:
         resultFile << result << "," << nRobots << "," << robotCapacity << "," << seed << "," << millis << "\n"; 
         resultFile.flush();
     }
+    string getName() {
+        return name;
+    }
 };
 
 template<typename T>
 vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, int nRobots, int robotCapacity, const vector<long>& seeds) {
     vector<int> results(seeds.size());
+    cout << "Running: " << resultHandler.getName() << endl;
     for(int i = 0; i < seeds.size(); i++) {
+        if(i % (seeds.size() / 10) == 0 && i != 0) {
+            cout << "Completed " << (i * 100) / seeds.size() <<'%' << endl;
+        }
         clock_t begin = clock();
         Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
         auto batches = t.solve(nRobots, robotCapacity, warehouse);
@@ -80,10 +87,12 @@ int main() {
     ResultHandler tabur("results", "tabu");
 
     auto seeds = generateSeeds(100);
+    
     auto cws = run(cwsr, cw::cw(), info, numberRobots, 5, seeds);
+    auto tabu = run(tabur, T, info, numberRobots, 5, seeds);
+
     auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, 5, seeds);
     auto ga = run(gar, G, info, numberRobots, 5, seeds);
-    auto tabu = run(tabur, T, info, numberRobots, 5, seeds);
 
     int accCWS = 0;
     int accGreedys = 0;

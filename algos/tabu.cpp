@@ -87,10 +87,16 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
     vector<vector<int>> bestSolution = solution;
     int bestSolutionScore = evaluateSolutionTime(warehouse, bestSolution, nRobots, robotCapacity);
     int t = 0;
+
+//    cout << "INITIAL: " << bestSolutionScore << endl;
     
     while(true) {
         t++;
-        tabus.step(t);
+        if(t >= 10000) {
+            break;
+        }
+
+        tabus.step(t); // Remove "old" tabu moves at this point
         nswapgenerator gen(solution);
         int nChecked = 0;
         int quality = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
@@ -106,6 +112,7 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
                 break; // Checked enough since we found a better one.
             }
 
+            // Get next move to check
             auto next = gen.next();
             // Check it's not on tabu
             auto move = gen.getMove();
@@ -146,5 +153,6 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
         solution = nextBestSolution;
     }
 
+//    cout << "FOUND: " << bestSolutionScore << endl;
     return bestSolution;
 }
