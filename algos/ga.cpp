@@ -5,9 +5,16 @@
 #include <iostream>
 #include <algorithm>
 
-
+// Or maybe: Adjacent Swaps on Strings
+// If we need linear, use Cayley distance? (eg. cycles in the permutation). compose c1 with the inverse of c2 and count the number of cycles
 int calcSwappingDistance(vector<int> c1, vector<int> c2) {
-  return 1;
+  int nSame = 0;
+  for(int i = 0; i < c1.size(); i++) {
+    if(c1[i] == c2[i])
+      nSame++;
+  }
+
+  return c1.size() - nSame;
 }
 
 vector<vector<int>> ga::Ga::solve(int nRobots, 
