@@ -33,8 +33,6 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& batches
         nBatches++;
     }
 
-    inlineCoutVec(batches);
-
     for(int i = 0; i < nBatches; i++) {
         int from = i * robotCapacity;
         int to = std::min((i + 1) * robotCapacity, (int)batches.size());
@@ -231,7 +229,6 @@ int findFirstNonNegOne(const vector<int>& idxSeq, int i, int to, int add = 1) {
 }
 
 int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) const {
-    cout << "FROM/TO/SIZE:" << from << "; " << to << ";" << idxSeq.size() << endl;
     if(from == -1) {
         from = 0;
     }
@@ -255,15 +252,12 @@ int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) c
         if(idxSeq[i] == -1) {
             continue; // This is a minus one, just keep on going
         }
+
         next = findFirstNonNegOne(idxSeq, next, to - 1);
         if(next >= to - 1) {
             break; // This grabs no more orders
         }
         
-        cout << "I:" << i << " NEXT:" << next << " ### ";
-        cout.flush();
-        cout << idxSeq[i] << ", " << idxSeq[next] << endl;
-        cout << pathLengthBetween.size() << endl;
         int timeBetween = pathLengthBetween[idxSeq[i] + 2][idxSeq[next] + 2];
         totalTime += timeBetween;
     }
