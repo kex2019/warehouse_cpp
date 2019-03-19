@@ -22,7 +22,7 @@ void inlineCoutVec(const vector<int>& vec) {
     cerr << "}";
 }
 
-int evaluateSolutionTime(Warehouse & warehouse, const vector<int>& batches, int nRobots, int robotCapacity) {
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& batches, int nRobots, int robotCapacity) {
     vector<bool> takenPackages(warehouse.getPackageLocations().size(), false);
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
@@ -53,7 +53,7 @@ int evaluateSolutionTime(Warehouse & warehouse, const vector<int>& batches, int 
     return *latestRobots.begin();
 }
 
-int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& batches, int nRobots, int robotCapacity) {
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>& batches, int nRobots, int robotCapacity) {
     vector<bool> takenPackages(warehouse.getPackageLocations().size(), false);
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;

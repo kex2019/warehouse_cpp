@@ -52,8 +52,8 @@ public:
 };
 
 Warehouse generateRandomWarehouse(WarehouseInfo info, long seed);
-int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& bacthes, int nRobots, int robotCapacity);
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>& bacthes, int nRobots, int robotCapacity);
 /*
     Overloaded function that assumes each batch is of size robotCapacity (last batch can be of other size however)
 */
-int evaluateSolutionTime(Warehouse & warehouse, const vector<int>& bacthes, int nRobots, int robotCapacity);
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& bacthes, int nRobots, int robotCapacity);
