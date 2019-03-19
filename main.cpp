@@ -67,6 +67,8 @@ int main() {
     info.shelfHeight = 10;
     info.packages = 40;
 
+    int numberRobots = 10;
+
     // TODO Run with many more generations and bigger population size
     auto G = ga::Ga(10, 20, 1.0, 0.0);
 
@@ -75,9 +77,9 @@ int main() {
     ResultHandler gar("results", "ga");
 
     auto seeds = generateSeeds(100);
-    auto cws = run(cwsr, cw::cw(), info, 2, 5, seeds);
-    auto greedys = run(greedyr, greedy::greedy(), info, 2, 5, seeds);
-    auto ga = run(gar, G, info, 2, 5, seeds);
+    auto cws = run(cwsr, cw::cw(), info, numberRobots, 5, seeds);
+    auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, 5, seeds);
+    auto ga = run(gar, G, info, numberRobots, 5, seeds);
 
     int accCWS = 0;
     int accGreedys = 0;
