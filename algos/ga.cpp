@@ -167,7 +167,7 @@ void ga::Ga::crossovermutate(Chromosomes &chromosomes,
 
       cout << "Picked Elites " << e1 << " " << e2 << "\n";
       // Partition indexes
-      int p1 = min((this->rng() % this->chromosomeSize) + 1, chromosomeSize - 1);
+      int p1 = min((int)(this->rng() % this->chromosomeSize) + 1, (int)(chromosomeSize - 1));
       int p2 = this->rng() % (p1 - 1);
       cout << "Picked Partitions " << p1 << " " << p2 << " " << chromosomeSize << " " << chromosomes[i].size() << " " << chromosomes.size() << "\n";
 
