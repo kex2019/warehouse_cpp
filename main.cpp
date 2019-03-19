@@ -59,6 +59,29 @@ vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, in
         Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
         auto batches = t.solve(nRobots, robotCapacity, warehouse);
         int solTime = evaluateSolutionTime(warehouse, batches, nRobots, robotCapacity);
+/*        vector<int> flattened;
+        for(int i = 0; i < batches.size(); i++) {
+            for(int j : batches[i])
+                flattened.push_back(j);
+            int j = 0;
+            while(j + batches[i].size() < robotCapacity) {
+                flattened.push_back(-1);
+            }
+        }
+
+        cout << "FLATSOL" << endl << endl; 
+        int flatSol = evaluateSolutionTime(warehouse, flattened, nRobots, robotCapacity);
+        if(solTime != flatSol) {
+            cout << "Not the same solution time: " << solTime << "!=" << flatSol << endl;
+            for(auto vec : batches) {
+                for(auto v : vec) {
+                    cout << v << " ";
+                }
+                cout << endl;
+            }
+            throw runtime_error("xd");
+        }
+*/
         results[i] = solTime;
         clock_t end = clock();
         double elapsedMs = double(end - begin) * 1000.0 / CLOCKS_PER_SEC ;
@@ -87,11 +110,11 @@ int main() {
     ResultHandler gar("results", "ga");
     ResultHandler tabur("results", "tabu");
 
-    auto seeds = generateSeeds(100);
+    auto seeds = generateSeeds(1000);
     
     auto cws = run(cwsr, cw::cw(), info, numberRobots, 5, seeds);
     auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, 5, seeds);
-    auto tabu = run(tabur, T, info, numberRobots, 5, seeds);
+    //auto tabu = run(tabur, T, info, numberRobots, 5, seeds);
     auto ga = run(gar, G, info, numberRobots, 5, seeds);
 
     int accCWS = 0;

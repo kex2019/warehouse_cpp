@@ -23,10 +23,8 @@ void inlineCoutVec(const vector<int>& vec) {
 }
 
 int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& batches, int nRobots, int robotCapacity) {
-    vector<bool> takenPackages(warehouse.getPackageLocations().size(), false);
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
-    bool invalid = false;
 
     int nBatches = batches.size() / robotCapacity;
     if(batches.size() % robotCapacity != 0) {
@@ -225,9 +223,15 @@ const vector<vector<int>>& Warehouse::getPathLengths() const {
     return this->pathLengthBetween;
 }
 
-int findFirstNonNegOne(const vector<int>& idxSeq, int i, int to, int add = 1) {
+int findFirstNonNegOneForward(const vector<int>& idxSeq, int i, int to) {
     while(i < to && idxSeq[i] == -1) {
-        i+= add;
+        i++;
+    }
+    return i;
+}
+int findFirstNonNegOneBackward(const vector<int>& idxSeq, int i, int from) {
+    while(i > from && idxSeq[i] == -1) {
+        i--;
     }
     return i;
 }
@@ -244,12 +248,10 @@ int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) c
         throw runtime_error("idSeq must have at least one element");
     }
 
-    int start = findFirstNonNegOne(idxSeq, 0, to);
-    int end = findFirstNonNegOne(idxSeq, to - 1, -1);
+    int start = findFirstNonNegOneForward(idxSeq, from, to);
+    int end = findFirstNonNegOneBackward(idxSeq, to - 1, from);
     int timeFromStart = pathLengthBetween[0][idxSeq[start] + 2];
     int timeToEnd = pathLengthBetween[idxSeq[end] + 2][1];
-//    inlineCoutVec(idxSeq);
-//    cout << ":: TimeStart: " << timeFromStart << ", timeEnd: " << timeToEnd << endl;
     int totalTime = 0;
     for(int i = from; i < to - 1; i++) {
         int next = i + 1;
@@ -257,7 +259,7 @@ int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) c
             continue; // This is a minus one, just keep on going
         }
 
-        next = findFirstNonNegOne(idxSeq, next, to - 1);
+        next = findFirstNonNegOneForward(idxSeq, next, to);
         if(next >= to - 1) {
             break; // This grabs no more orders
         }
@@ -265,6 +267,15 @@ int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) c
         int timeBetween = pathLengthBetween[idxSeq[i] + 2][idxSeq[next] + 2];
         totalTime += timeBetween;
     }
+/*
+    for(int i = from; i < to; i++) {
+        cout << idxSeq[i] << " ";
+    }
+
+    cout << " :::: " << totalTime + timeFromStart + timeToEnd << ", " << totalTime << ", " << timeFromStart << ", " << timeToEnd;
+    cout << "  ::::  (from:start, to:end) " << from << ":" << start <<","<< idxSeq[start] << "  " << to << ":" << idxSeq[end];
+    cout << endl;
+*/
     return totalTime + timeFromStart + timeToEnd;
 }
 
