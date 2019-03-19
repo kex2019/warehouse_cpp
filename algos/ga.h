@@ -3,17 +3,19 @@
 #include <vector>
 #include "../warehouse.h"
 #include <set>
+#include <random>
+#include <time.h>
 
 typedef vector<vector<int>> Chromosomes;
 
 using namespace std;
 namespace ga {
 
-
   class Ga {
     set<int> orders;
     vector<int> numObsOrders;
     int chromosomeSize;
+    mt19937 rng;
     public:
     int population;
     int generations;
@@ -32,7 +34,7 @@ namespace ga {
         double beta): population(population), 
     generations(generations), 
     alpha(alpha), 
-    beta(beta) {};
+    beta(beta), rng(10) {};
   };
 }
 

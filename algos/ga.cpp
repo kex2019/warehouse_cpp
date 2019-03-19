@@ -3,6 +3,7 @@
 #include <random>
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 
 int calcSwappingDistance(vector<int> c1, vector<int> c2) {
@@ -42,7 +43,7 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
 
   Chromosomes chromosomes;
   for (int i = 0; i < this->population; i++) {
-    shuffle(baseChromosome);
+    shuffle(baseChromosome.begin(), baseChromosome.end(), default_random_engine(this->rng()));
     chromosomes.push_back(baseChromosome);
   }
 
@@ -117,7 +118,7 @@ vector<int> ga::Ga::select(vector<double> &fitnesses,
   // Paper referenced in Kex Roulette-wheel selection via stochastic acceptance
 
   int pDistance = int(totalFitness / keepN);
-  int start = rng() % pDistance;
+  int start = this->rng() % pDistance;
 
   vector<int> elitists;
   for (int i = 0; i < keepN; i++) {
@@ -145,12 +146,12 @@ void ga::Ga::crossovermutate(Chromosomes &chromosomes,
       elitistIndex++;
     } else {
       // Select two elitists & combine them and replace the chromosome at position i with that chromosome
-      int e1 = elitists[rng() % elitists.size()];
-      int e2 = elitists[rng() % elitists.size()];
+      int e1 = elitists[this->rng() % elitists.size()];
+      int e2 = elitists[this->rng() % elitists.size()];
 
       // Partition indexes
-      int p1 = rng() % this->chromosomeSize;
-      int p2 = rng() % (p1 - 1);
+      int p1 = this->rng() % this->chromosomeSize;
+      int p2 = this->rng() % (p1 - 1);
 
       // Combine the elitists into the new chromosome
       for (int j = p1; j < p2; j++)
@@ -182,8 +183,8 @@ void ga::Ga::crossovermutate(Chromosomes &chromosomes,
           chromosomes[i][j] = missingOrders[missingOrderIndex++];
 
       for (int j = 0; j < mutateN; j++) {
-        int i1 = rng() % this->chromosomeSize;
-        int i2 = rng() % this->chromosomeSize;
+        int i1 = this->rng() % this->chromosomeSize;
+        int i2 = this->rng() % this->chromosomeSize;
         swap(chromosomes[i][i1], chromosomes[i][i2]);
       }
       // Now mutate the chromosome
