@@ -185,10 +185,6 @@ void ga::Ga::crossovermutate(Chromosomes &chromosomes,
 
       // Adjust for missing orders by removing duplicates
       for (int j = 0; j < this->chromosomeSize && missingOrders.size(); j++) {
-        if(numObsOrders[chromosomes[i][j]] > 2) {
-          throw runtime_error("An order contained omre than 2 orders");
-        }
-
         if (chromosomes[i][j] != -1 && this->numObsOrders[chromosomes[i][j]] == 2) {
           this->numObsOrders[chromosomes[i][j]]--;
           chromosomes[i][j] = missingOrders.front();
