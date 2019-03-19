@@ -57,6 +57,7 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
 
   for (int g = 0; g < this->generations; g++) {
     cout << "Generation " << g << "               \r";
+    cout.flush();
     totalFitness = this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
 
     // Store apex
