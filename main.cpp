@@ -79,7 +79,7 @@ int main() {
     int numberRobots = 10;
 
     // TODO Run with many more generations and bigger population size
-    auto G = ga::Ga(3, 3, 1.0, 0.0);
+    auto G = ga::Ga(500, 30, 1.0, 0.0);
     auto T = tabu::Tabu();
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
@@ -88,21 +88,21 @@ int main() {
 
     auto seeds = generateSeeds(100);
     
-    auto cws = run(cwsr, cw::cw(), info, numberRobots, 5, seeds);
-    auto tabu = run(tabur, T, info, numberRobots, 5, seeds);
+//    auto cws = run(cwsr, cw::cw(), info, numberRobots, 5, seeds);
+    //auto tabu = run(tabur, T, info, numberRobots, 5, seeds);
 
-    auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, 5, seeds);
+//    auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, 5, seeds);
     auto ga = run(gar, G, info, numberRobots, 5, seeds);
 
     int accCWS = 0;
     int accGreedys = 0;
-    for(int i = 0; i < seeds.size(); i++) {
+  /*  for(int i = 0; i < seeds.size(); i++) {
         accCWS += cws[i];
         accGreedys += greedys[i];
     }
 
     cout << "ACC cws: " << accCWS << ", ACC greedy: " << accGreedys << " greedy-cws/run: " << ((double)(accGreedys-accCWS))/(double)(seeds.size()) << endl;
-    /*
+*/    /*
     Warehouse warehouse = generateRandomWarehouse(info);
     std::cout << warehouse.to_string() << endl;
     auto ret = runCW(warehouse, 2, 5);

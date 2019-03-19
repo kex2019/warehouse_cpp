@@ -49,19 +49,15 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
     chromosomes.push_back(baseChromosome);
   }
 
-  cout << "Chromosome size " << chromosomes.size() << "\n";
-
   double totalFitness = 0;
   vector<double> fitnesses(chromosomes.size());
 
   vector<int> apexChromosome;
   double apexFitness = 0.0;
 
-  cout << "Started generations\n";
   for (int g = 0; g < this->generations; g++) {
-    cout << "Starting Loop\n";
+    cout << "Generation " << g << "               \r";
     totalFitness = this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
-    cout << "Calc fitness\n";
 
     // Store apex
     for (int i = 0; i < fitnesses.size(); i++) {
@@ -71,35 +67,16 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
       }
     }
 
-    cout << "\nApex";
-    for (auto i: apexChromosome) {
-      cout << i << " ";
-    }
-    cout << "\n";
 
-
-    cout << "Store Apex\n";
     // TODO: Calculate how many to keep (Currently naive)
     int keepN = int(this->population * 0.4);
 
-    cout << "Calc elitists\n";
     vector<int> elitists = this->select(fitnesses, totalFitness, keepN);
 
     // TODO: Calculate how much to mutate (Currenly naive)
     int mutateN = max(1, int(this->chromosomeSize * 0.1));
-
-    cout << "Crossmutate " << elitists.size() << "\n";
     this->crossovermutate(chromosomes, elitists, mutateN);
-
-    cout << "Generation " << g << "               \r";
   }
-
-
-  cout << "\nApex";
-  for (auto i: apexChromosome) {
-    cout << i << " ";
-  }
-  cout << "\n";
 
   vector<vector<int>> solution;
   vector<int> batch;
@@ -116,16 +93,6 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
   if (solution.size() != nRobots)
     solution.push_back(batch);
 
-  cout << "Solution\n";
-  for (auto vec : solution) {
-    for (auto i : vec) {
-      cout << i << " ";
-    }
-    cout << "\n";
-  }
-
-  cout.flush();
-
   return solution;
 }
 
@@ -135,20 +102,14 @@ double ga::Ga::fitness(Chromosomes &chromosomes,
     int robotCapacity, 
     const Warehouse &warehouse) {
   double totalFitness = 0.0;
-  cout << "Caluclating Fitnesses\n";
   for (int i = 0; i < chromosomes.size(); i++) {
-    cout << "Index " << i << "\n";
     int performance = evaluateSolutionTime(warehouse, chromosomes[i], nRobots, robotCapacity);
-    cout << "Evaluated Performance\n";
     int swappingDistance = 0;
     for (int j = 0; j < chromosomes.size(); j++) {
       swappingDistance += calcSwappingDistance(chromosomes[i], chromosomes[j]);
     }
-
-    cout << "Evaluated Swapping Distance\n";
     // TODO: Normalize swapping and performance scores?
     fitnesses[i] = this->alpha * double(performance) + this->beta * double(swappingDistance);
-    cout << "Updated fitnesses\n";
     totalFitness += fitnesses[i];
   }
   return totalFitness;
@@ -184,63 +145,28 @@ void ga::Ga::crossovermutate(Chromosomes &chromosomes,
   // Combine elitists to populate all chromosomes that is not in elitists
   int elitistIndex = 0;
   for (int i = 0; i < chromosomes.size(); i++) {
-    cout << "Index " << i << " Total " << chromosomes.size() << "\n";
     if (elitistIndex < elitists.size() && i == elitists[elitistIndex]) {
-      cout << "Elitist Increment\n";
       elitistIndex++;
-
-      fill(this->numObsOrders.begin(), this->numObsOrders.end(), 0);
-      sort(chromosomes[i].begin(), chromosomes[i].end());
-      for (int j = 0; j < this->chromosomeSize; j++)
-        cout << chromosomes[i][j] << " ";
-      cout << "\n";
-      cout.flush();
-      for (int j = 0; j < this->numObsOrders.size(); j++) {
-        if (chromosomes[i][j] != -1) {
-          this->numObsOrders[chromosomes[i][j]]++;
-
-          if (this->numObsOrders[chromosomes[i][j]] > 1) {
-            cout << "FAILED to crossmut\n";
-
-            throw runtime_error("FAILED CROSSMUT");
-          }
-        }
-      }
-
     } else {
       // Select two elitists & combine them and replace the chromosome at position i with that chromosome
-      cout << "Defect update\n";
       int e1 = elitists[this->rng() % elitists.size()];
       int e2 = elitists[this->rng() % elitists.size()];
-
-      cout << "Picked Elites " << e1 << " " << e2 << "\n";
       // Partition indexes
       int p1 = min((int)(this->rng() % this->chromosomeSize) + 2, (int)(chromosomeSize - 1));
       int p2 = this->rng() % (p1 - 1);
-      cout << "Picked Partitions " << p1 << " " << p2 << " " << chromosomeSize << " " << chromosomes[i].size() << " " << chromosomes.size() << "\n";
-
 
       // Combine the elitists into the new chromosome
-      for (int j = p1; j < p2; j++)
+      for (int j = p2; j < p1; j++)
         chromosomes[i][j] = chromosomes[e1][j];
-
-      cout << "Transfered first partition\n";
 
       for (int j = 0; j < p2; j++)
         chromosomes[i][j] = chromosomes[e2][j];
 
-      cout << "Transfered second partition\n";
       for (int j = p1; j < this->chromosomeSize; j++)
         chromosomes[i][j] = chromosomes[e2][j];
 
-      cout << "Transfered third partition\n";
       // Empty data (For chromosome validation)
-
-
-
       fill(this->numObsOrders.begin(), this->numObsOrders.end(), 0);
-
-      cout << "Filled\n";
       // vector with num orders
       for (int j = 0; j < this->chromosomeSize; j++) {
         if (chromosomes[i][j] != -1) {
@@ -250,39 +176,40 @@ void ga::Ga::crossovermutate(Chromosomes &chromosomes,
 
       // Find missing orders
       vector<int> missingOrders;
-      for(int j = 0; j < this->numObsOrders.size(); j++) 
-        if (this->numObsOrders[j] == 0) 
+      for(int j = 0; j < this->numObsOrders.size(); j++) {
+        if (this->numObsOrders[j] == 0) {
           missingOrders.push_back(j);
-
+        }
+      }
 
       // Adjust for missing orders by removing duplicates
       for (int j = 0; j < this->chromosomeSize && missingOrders.size(); j++) {
+        if(numObsOrders[chromosomes[i][j]] > 2) {
+          throw runtime_error("An order contained omre than 2 orders");
+        }
+
         if (chromosomes[i][j] != -1 && this->numObsOrders[chromosomes[i][j]] == 2) {
           this->numObsOrders[chromosomes[i][j]]--;
-          chromosomes[i][j] = missingOrders[0];
+          chromosomes[i][j] = missingOrders.front();
           missingOrders.erase(missingOrders.begin());
         }
       }
 
       // Adjust for missing orders by filling padding
-      int missingOrderIndex = 0;
-      for (int j = 0; j < this->chromosomeSize && missingOrderIndex < missingOrders.size(); j++) {
+      for (int j = 0; j < this->chromosomeSize && missingOrders.size(); j++) {
         if (chromosomes[i][j] == -1) {
-          chromosomes[i][j] = missingOrders[missingOrderIndex++];
+          chromosomes[i][j] = missingOrders.front();
+          missingOrders.erase(missingOrders.begin());
         }
       }
 
       // Remove all duplicates
       for (int j = 0; j < this->chromosomeSize; j++) {
         if (this->numObsOrders[chromosomes[i][j]] == 2) {
+          numObsOrders[chromosomes[i][j]]--;
           chromosomes[i][j] = -1;
         }
       }
-
-
-
-
-
 
       // Now mutate the chromosome
       for (int j = 0; j < mutateN; j++) {
@@ -291,30 +218,6 @@ void ga::Ga::crossovermutate(Chromosomes &chromosomes,
         swap(chromosomes[i][i1], chromosomes[i][i2]);
       }
 
-      fill(this->numObsOrders.begin(), this->numObsOrders.end(), 0);
-      sort(chromosomes[i].begin(), chromosomes[i].end());
-      for (int j = 0; j < this->chromosomeSize; j++)
-        cout << chromosomes[i][j] << " ";
-      cout << "\n";
-      cout.flush();
-      for (int j = 0; j < this->numObsOrders.size(); j++) {
-        if (chromosomes[i][j] != -1) {
-          this->numObsOrders[chromosomes[i][j]]++;
-
-          if (this->numObsOrders[chromosomes[i][j]] > 1) {
-            cout << "FAILED to crossmut\n";
-
-            throw runtime_error("FAILED CROSSMUT");
-          }
-        }
-      }
     }
   }
-
-  for (auto C: chromosomes) {
-    for (auto c: C) 
-      cout << c << " ";
-    cout << "\n";
-  }
-  return;
 }
