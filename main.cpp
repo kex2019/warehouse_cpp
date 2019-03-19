@@ -79,7 +79,7 @@ int main() {
     int numberRobots = 10;
 
     // TODO Run with many more generations and bigger population size
-    auto G = ga::Ga(10, 20, 1.0, 0.0);
+    auto G = ga::Ga(3, 3, 1.0, 0.0);
     auto T = tabu::Tabu();
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
