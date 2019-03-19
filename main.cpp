@@ -91,7 +91,7 @@ int main() {
     
     auto cws = run(cwsr, cw::cw(), info, numberRobots, 5, seeds);
     auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, 5, seeds);
-    auto tabu = run(tabur, T, info, numberRobots, 5, seeds);
+    //auto tabu = run(tabur, T, info, numberRobots, 5, seeds);
     auto ga = run(gar, G, info, numberRobots, 5, seeds);
 
     int accCWS = 0;

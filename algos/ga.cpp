@@ -18,7 +18,7 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
   // To implement adaptive values for keepN and mutateN
 
 
-  cout << "\nStarting GA -- " << "Generations: " << this->generations << " -- Population: " << this->population << "\n";
+//  cout << "\nStarting GA -- " << "Generations: " << this->generations << " -- Population: " << this->population << "\n";
   // Generate chromosomes
   int orders = warehouse.getPackageLocations().size();
 
@@ -53,12 +53,10 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
   vector<double> fitnesses(chromosomes.size());
 
   vector<int> apexChromosome;
-  double apexFitness = 0.0;
+  double apexFitness = -1e6;
 
   for (int g = 0; g < this->generations; g++) {
-    cout << "Generation " << g << "               \r";
-    cout.flush();
-    totalFitness = this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
+    totalFitness =this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
 
     // Store apex
     for (int i = 0; i < fitnesses.size(); i++) {
@@ -78,6 +76,7 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
     int mutateN = max(1, int(this->chromosomeSize * 0.1));
     this->crossovermutate(chromosomes, elitists, mutateN);
   }
+
 
   vector<vector<int>> solution;
   vector<int> batch;
@@ -104,7 +103,7 @@ double ga::Ga::fitness(Chromosomes &chromosomes,
     const Warehouse &warehouse) {
   double totalFitness = 0.0;
   for (int i = 0; i < chromosomes.size(); i++) {
-    int performance = evaluateSolutionTime(warehouse, chromosomes[i], nRobots, robotCapacity);
+    int performance = -evaluateSolutionTime(warehouse, chromosomes[i], nRobots, robotCapacity);
     int swappingDistance = 0;
     for (int j = 0; j < chromosomes.size(); j++) {
       swappingDistance += calcSwappingDistance(chromosomes[i], chromosomes[j]);
