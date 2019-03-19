@@ -12,9 +12,8 @@ using namespace std;
 namespace ga {
 
   class Ga {
-    set<int> orders;
     vector<int> numObsOrders;
-    int chromosomeSize;
+    unsigned int chromosomeSize;
     mt19937 rng;
     public:
     int population;

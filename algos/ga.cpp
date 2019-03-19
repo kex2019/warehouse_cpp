@@ -37,6 +37,8 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
     baseChromosome.push_back(-1);
 
   this->chromosomeSize = robotCapacity * nRobots;
+  this->numObsOrders = vector<int>(chromosomeSize);
+
 
   if (baseChromosome.size() != this->chromosomeSize)
     throw runtime_error("baseChromosome size does not match chromosome size");
@@ -52,8 +54,12 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
 
   vector<int> apexChromosome;
   double apexFitness = 0.0;
+
+  cout << "Started generations\n";
   for (int g = 0; g < this->generations; g++) {
+    cout << "Starting Loop\n";
     totalFitness = this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
+    cout << "Calc fitness\n";
 
     // Store apex
     for (int i = 0; i < fitnesses.size(); i++) {
@@ -61,17 +67,19 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
         apexFitness = fitnesses[i];
         apexChromosome = chromosomes[i];
       }
-
     }
 
+    cout << "Store Apex\n";
     // TODO: Calculate how many to keep (Currently naive)
     int keepN = int(this->population * 0.4);
 
+    cout << "Calc elitists\n";
     vector<int> elitists = this->select(fitnesses, totalFitness, keepN);
 
     // TODO: Calculate how much to mutate (Currenly naive)
     int mutateN = max(1, int(this->chromosomeSize * 0.1));
 
+    cout << "Crossmutate " << elitists.size() << "\n";
     this->crossovermutate(chromosomes, elitists, mutateN);
 
     cout << "Generation " << g << "               \r";
@@ -98,14 +106,20 @@ double ga::Ga::fitness(Chromosomes &chromosomes,
     int robotCapacity, 
     const Warehouse &warehouse) {
   double totalFitness = 0.0;
+  cout << "Caluclating Fitnesses\n";
   for (int i = 0; i < chromosomes.size(); i++) {
+    cout << "Index " << i << "\n";
     int performance = evaluateSolutionTime(warehouse, chromosomes[i], nRobots, robotCapacity);
+    cout << "Evaluated Performance\n";
     int swappingDistance = 0;
     for (int j = 0; j < chromosomes.size(); j++) {
       swappingDistance += calcSwappingDistance(chromosomes[i], chromosomes[j]);
     }
+
+    cout << "Evaluated Swapping Distance\n";
     // TODO: Normalize swapping and performance scores?
     fitnesses[i] = this->alpha * double(performance) + this->beta * double(swappingDistance);
+    cout << "Updated fitnesses\n";
     totalFitness += fitnesses[i];
   }
   return totalFitness;
@@ -123,13 +137,13 @@ vector<int> ga::Ga::select(vector<double> &fitnesses,
   vector<int> elitists;
   for (int i = 0; i < keepN; i++) {
     int p = start + i * pDistance;
-    int j = 0;
+    unsigned long j = 0;
     double jsum = 0.0;
     while (jsum < p && j < fitnesses.size()) {
       jsum += fitnesses[j];
       j++;
     }
-    elitists.push_back(j);
+    elitists.push_back(min(j, fitnesses.size() - 1));
   }
 
   return elitists;
@@ -139,33 +153,42 @@ void ga::Ga::crossovermutate(Chromosomes &chromosomes,
     vector<int> &elitists, 
     int mutateN) {
   // Combine elitists to populate all chromosomes that is not in elitists
-  vector<int> defectives;
   int elitistIndex = 0;
   for (int i = 0; i < chromosomes.size(); i++) {
+    cout << "Index " << i << " Total " << chromosomes.size() << "\n";
     if (elitistIndex < elitists.size() && i == elitists[elitistIndex]) {
+      cout << "Elitist Increment\n";
       elitistIndex++;
     } else {
       // Select two elitists & combine them and replace the chromosome at position i with that chromosome
+      cout << "Defect update\n";
       int e1 = elitists[this->rng() % elitists.size()];
       int e2 = elitists[this->rng() % elitists.size()];
 
+      cout << "Picked Elites " << e1 << " " << e2 << "\n";
       // Partition indexes
-      int p1 = this->rng() % this->chromosomeSize;
+      int p1 = min((this->rng() % this->chromosomeSize) + 1, chromosomeSize - 1);
       int p2 = this->rng() % (p1 - 1);
+      cout << "Picked Partitions " << p1 << " " << p2 << " " << chromosomeSize << " " << chromosomes[i].size() << " " << chromosomes.size() << "\n";
 
       // Combine the elitists into the new chromosome
       for (int j = p1; j < p2; j++)
         chromosomes[i][j] = chromosomes[e1][j];
 
-      for (int j = 0; j < p1; j++)
+      cout << "Transfered first partition\n";
+
+      for (int j = 0; j < p2; j++)
         chromosomes[i][j] = chromosomes[e2][j];
 
-      for (int j = p2; j < this->chromosomeSize; j++)
+      cout << "Transfered second partition\n";
+      for (int j = p1; j < this->chromosomeSize; j++)
         chromosomes[i][j] = chromosomes[e2][j];
 
+      cout << "Transfered third partition\n";
       // Empty data (For chromosome validation)
       fill(this->numObsOrders.begin(), this->numObsOrders.end(), 0);
 
+      cout << "Filled\n";
       // Update set with observed orders and vector with num orders
       for (int j = 0; j < this->chromosomeSize; j++) 
         this->numObsOrders[chromosomes[i][j]]++;
