@@ -60,6 +60,9 @@ int evaluateSolutionTime(Warehouse & warehouse, const vector<vector<int>>& batch
     bool invalid = false;
 
     for(int i = 0; i < batches.size(); i++) {
+        if(batches[i].size() == 0) {
+            continue; // No items for this robot :'(
+        }
         if(batches[i].size() > robotCapacity) {
             cerr << "Batch: ";
             inlineCerrVec(batches[i]);
@@ -129,7 +132,6 @@ Warehouse generateRandomWarehouse(WarehouseInfo info, long seed) {
 //    random_device dev;
 
     mt19937 rng(seed);
-//    mt19937 rng(12321);
     uniform_int_distribution<std::mt19937::result_type> widthDist(0,info.aisles*2-1);
     uniform_int_distribution<std::mt19937::result_type> heightDist(0,info.crossAiles);
     uniform_int_distribution<std::mt19937::result_type> heightAddDist(0,info.shelfHeight-1);
