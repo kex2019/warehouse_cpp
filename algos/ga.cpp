@@ -37,7 +37,7 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
     baseChromosome.push_back(-1);
 
   this->chromosomeSize = robotCapacity * nRobots;
-  this->numObsOrders = vector<int>(chromosomeSize);
+  this->numObsOrders = vector<int>(orders);
 
 
   if (baseChromosome.size() != this->chromosomeSize)
@@ -190,20 +190,32 @@ void ga::Ga::crossovermutate(Chromosomes &chromosomes,
 
       cout << "Filled\n";
       // Update set with observed orders and vector with num orders
-      for (int j = 0; j < this->chromosomeSize; j++) 
-        this->numObsOrders[chromosomes[i][j]]++;
+      for (int j = 0; j < this->numObsOrders.size(); j++) {
+        if (chromosomes[i][j] != -1) {
+          this->numObsOrders[chromosomes[i][j]]++;
+        }
+      }
 
       // Find missing orders
       vector<int> missingOrders;
-      for(int j = 0; j < this->chromosomeSize; j++) 
+      for(int j = 0; j < this->numObsOrders.size(); j++) 
         if (this->numObsOrders[j] == 0) 
           missingOrders.push_back(j);
 
-      // Adjust for missing orders
+      // Adjust for missing orders by removing duplicates
+      for (int j = 0; j < this->chromosomeSize && missingOrders.size(); j++)
+        if (chromosomes[i][j] != -1 && this->numObsOrders[chromosomes[i][j]] == 2) {
+          chromosomes[i][j] = missingOrders[0];
+          missingOrders.erase(missingOrders.begin());
+        }
+
+      // Adjust for missing orders by filling padding
       int missingOrderIndex = 0;
-      for (int j = 0; j < this->chromosomeSize && missingOrderIndex < missingOrders.size(); j++)
-        if (this->numObsOrders[j] == 2) 
-          chromosomes[i][j] = missingOrders[missingOrderIndex++];
+      for (int j = 0; j < this->chromosomeSize && missingOrderIndex < missingOrders.size(); j++) {
+        if (chromosomes[i][j] == -1) {
+          chromosomes[i][i] = missingOrders[missingOrderIndex++];
+        }
+      }
 
       for (int j = 0; j < mutateN; j++) {
         int i1 = this->rng() % this->chromosomeSize;
