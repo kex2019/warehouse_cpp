@@ -38,8 +38,8 @@ public:
     ~ResultHandler() {
         resultFile.close();
     }
-    void appendResult(int result, int nRobots, int robotCapacity, int seed, long millis) {
-        resultFile << result << "," << nRobots << "," << robotCapacity << "," << seed << "," << millis << "\n"; 
+    void appendResult(int result, int nRobots, int robotCapacity, int nPackages, int seed, long millis) {
+        resultFile << result << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
         resultFile.flush();
     }
     string getName() {
@@ -52,10 +52,8 @@ vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, in
     vector<int> results(seeds.size());
     cout << "Running: " << resultHandler.getName() << endl;
     for(int i = 0; i < seeds.size(); i++) {
-        if(i % (seeds.size() / 10) == 0 && i != 0) {
-            cout << "Completed " << (i * 100) / seeds.size() <<'%' <<  "            \r";
-            cout.flush();
-        }
+        cout << "Completed " << (i * 100) / seeds.size() <<'%' <<  "            \r";
+        cout.flush();
 
         clock_t begin = clock();
         Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
@@ -64,7 +62,7 @@ vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, in
         results[i] = solTime;
         clock_t end = clock();
         double elapsedMs = double(end - begin) * 1000.0 / CLOCKS_PER_SEC ;
-        resultHandler.appendResult(solTime, nRobots, robotCapacity, (int)seeds[i], (long)elapsedMs);
+        resultHandler.appendResult(solTime, nRobots, robotCapacity, info.packages, (int)seeds[i], (long)elapsedMs);
     }
     cout << "Completed 100" << '%' << endl;
     return results;
@@ -82,7 +80,7 @@ int main() {
     int numberRobots = 10;
 
     // TODO Run with many more generations and bigger population size
-    auto G = ga::Ga(500, 30, 1.0, 0.0);
+    auto G = ga::Ga(500, 50, 1.0, 0.0);
     auto T = tabu::Tabu();
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
@@ -91,10 +89,9 @@ int main() {
 
     auto seeds = generateSeeds(100);
     
-//    auto cws = run(cwsr, cw::cw(), info, numberRobots, 5, seeds);
-//    auto tabu = run(tabur, T, info, numberRobots, 5, seeds);
-
-//    auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, 5, seeds);
+    auto cws = run(cwsr, cw::cw(), info, numberRobots, 5, seeds);
+    auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, 5, seeds);
+    auto tabu = run(tabur, T, info, numberRobots, 5, seeds);
     auto ga = run(gar, G, info, numberRobots, 5, seeds);
 
     int accCWS = 0;
