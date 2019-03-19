@@ -2,21 +2,34 @@
 #include "../warehouse.h"
 
 
+int calcSwappingDistance(vector<int> c1, vector<int> c2) {
+  return 1;
+}
 
-vector<vector<int>> ga::Ga::solve(int robotCapacity, const Warehouse &warehouse) {
+vector<vector<int>> ga::Ga::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
   return {};
 }
 
-void ga::Ga::fitness(Chromosomes &chromosome, vector<int> &fitnesses, const Warehouse &warehouse) {
+double ga::Ga::fitness(Chromosomes &chromosomes, vector<double> &fitnesses, const Warehouse &warehouse, int nRobots, int robotCapacity) {
+  double totalFitness = 0.0;
   for (int i = 0; i < chromosomes.size(); i++) {
-    int performance = warehouse.
+    int performance = evaluateSolutionTime(warehouse, chromosomes[i], nRobots, robotCapacity);
+    int swappingDistance = 0;
+    for (int j = 0; j < chromosomes.size(); j++) {
+      swappingDistance += calcSwappingDistance(chromosomes[i], chromosomes[j]);
+    }
+    // TODO: Normalize swapping and performance scores?
+    fitnesses[i] = this->alpha * double(performance) + this->beta * double(swappingDistance);
+    totalFitness += fitnesses[i];
   }
-
-
-  return;
+  return totalFitness;
 }
 
-vector<int> ga::Ga::select(Chromosomes &chromosomes, vector<int> &fitnesses) {
+vector<int> ga::Ga::select(Chromosomes &chromosomes, vector<double> &fitnesses, double totalFitness, double keepN) {
+  // Nice pseudo code here https://en.wikipedia.org/wiki/Stochastic_universal_sampling
+  // Paper referenced in Kex Roulette-wheel selection via stochastic acceptance
+
+  int p = int(totalFitness / keepN);
   return {};
 }
 
