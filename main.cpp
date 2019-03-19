@@ -9,6 +9,8 @@
 #include "algos/cw.h"
 #include "algos/greedy.h"
 #include "algos/ga.h"
+#include "algos/tabu.h"
+
 
 vector<long> generateSeeds(int N) {
     random_device dev;
@@ -69,15 +71,17 @@ int main() {
 
     // TODO Run with many more generations and bigger population size
     auto G = ga::Ga(10, 20, 1.0, 0.0);
-
+    auto T = tabu::Tabu();
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
     ResultHandler gar("results", "ga");
+    ResultHandler tabur("results", "tabu");
 
     auto seeds = generateSeeds(100);
     auto cws = run(cwsr, cw::cw(), info, 2, 5, seeds);
     auto greedys = run(greedyr, greedy::greedy(), info, 2, 5, seeds);
     auto ga = run(gar, G, info, 2, 5, seeds);
+    auto tabu = run(tabur, T, info, 2, 5, seeds);
 
     int accCWS = 0;
     int accGreedys = 0;
