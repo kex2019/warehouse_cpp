@@ -48,7 +48,7 @@ vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, in
     for(int i = 0; i < seeds.size(); i++) {
         clock_t begin = clock();
         Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
-        auto batches = t.solve(robotCapacity, warehouse);
+        auto batches = t.solve(nRobots, robotCapacity, warehouse);
         int solTime = evaluateSolutionTime(warehouse, batches, nRobots, robotCapacity);
         results[i] = solTime;
         clock_t end = clock();

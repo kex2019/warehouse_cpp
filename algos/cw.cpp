@@ -1,6 +1,6 @@
 #include "cw.h"
 #include <iostream>
-vector<vector<int>> cw::cw::solve(int robotCapacity, const Warehouse &warehouse) {
+vector<vector<int>> cw::cw::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
     auto &orderLocations = warehouse.getPackageLocations();
     vector<int> orderIdxs(orderLocations.size());
     vector<int> orderCost(orderLocations.size());
