@@ -12,14 +12,16 @@ def read(data_str: str) -> pd.DataFrame:
     computation = []
 
     for line in data_str.split("\n"):
+        if line == "":
+            continue
         s, r, c, p, sd, cp = line.split(",")
 
-        scores.append(s)
-        robots.append(r)
-        capacity.append(c)
-        packages.append(p)
-        seed.append(sd)
-        computation.append(cp)
+        scores.append(float(s))
+        robots.append(float(r))
+        capacity.append(float(c))
+        packages.append(float(p))
+        seed.append(float(sd))
+        computation.append(float(cp))
 
     return pd.DataFrame({
         "scores": scores,
