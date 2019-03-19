@@ -67,7 +67,8 @@ int main() {
     info.shelfHeight = 10;
     info.packages = 40;
 
-    auto G = ga::Ga(10, 1, 0);
+    // TODO Run with many more generations and bigger population size
+    auto G = ga::Ga(10, 20, 1.0, 0.0);
 
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
