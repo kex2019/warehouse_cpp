@@ -21,26 +21,50 @@ vector<long> generateSeeds(int N) {
     return seeds;
 }
 
+int resultId = 0;
+int nextId() {
+    return resultId++;
+}
+
 class ResultHandler {
     string name;
     ofstream resultFile;
+    ofstream robotResultFile;
 public: 
     ResultHandler(string dir, std::string name, bool overwrite = false) : name(name) {
         auto flags = ios::out;
         if(overwrite)
             flags = flags | ios::trunc;
-        resultFile.open(dir + "/" + name, flags);
+        resultFile.open(dir + "/" + name + ".results", flags);
         if(!resultFile.is_open()) {
-            cerr << "Could not open " << (dir + "/" + name) << " for writing results, throwing" << endl;
+            cerr << "Could not open " << (dir + "/" + name + ".results") << " for writing results, throwing" << endl;
+            throw runtime_error("Could not open result file"); 
+        }
+
+        robotResultFile.open(dir + "/" + name + "_robots.results", flags);
+        if(!robotResultFile.is_open()) {
+            cerr << "Could not open " << (dir + "/" + name + "_robots.results") << " for writing results, throwing" << endl;
             throw runtime_error("Could not open result file"); 
         }
     }
     ~ResultHandler() {
         resultFile.close();
+        robotResultFile.close();
     }
-    void appendResult(int result, int nRobots, int robotCapacity, int nPackages, int seed, long millis) {
-        resultFile << result << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
+    void appendResult(int result, int nRobots, int robotCapacity, int nPackages, int seed, long millis, const vector<int> &robotTravelTimes) {
+        int id = nextId();
+        resultFile << id << result << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
         resultFile.flush();
+        // Print the stats for every robot
+        robotResultFile << id << "," << robotTravelTimes.size() << ",";
+        for(int i = 0; i < robotTravelTimes.size(); i++) {
+            robotResultFile << robotTravelTimes[i];
+            if(i != robotTravelTimes.size() - 1) {
+                robotResultFile << ",";
+            }
+        }
+        robotResultFile << "\n";
+        robotResultFile.flush();
     }
     string getName() {
         return name;
@@ -61,20 +85,22 @@ vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, in
         int solTime = evaluateSolutionTime(warehouse, batches, nRobots, robotCapacity);
         results[i] = solTime;
         clock_t end = clock();
-        double elapsedMs = double(end - begin) * 1000.0 / CLOCKS_PER_SEC ;
-        resultHandler.appendResult(solTime, nRobots, robotCapacity, info.packages, (int)seeds[i], (long)elapsedMs);
+        double elapsedMs = double(end - begin) * 1000.0 / CLOCKS_PER_SEC;
+        auto travelTimes = getRobotTravelTimes(warehouse, batches, nRobots, robotCapacity);
+        resultHandler.appendResult(solTime, nRobots, robotCapacity, info.packages, (int)seeds[i], (long)elapsedMs, travelTimes);
     }
+
     cout << "Completed 100" << '%' << endl;
     return results;
 }
 
 int main() {
     WarehouseInfo info;
-    info.aisles = 3;
+    info.aisles = 8;
     info.aisleWidth = 2;
     info.crossAiles = 2;
     info.crossAilesWidth = 2;
-    info.shelfHeight = 10;
+    info.shelfHeight = 20;
     info.packages = 40;
 
     int numberRobots = 10;

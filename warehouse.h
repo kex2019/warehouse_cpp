@@ -57,3 +57,5 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>&
     Overloaded function that assumes each batch is of size robotCapacity (last batch can be of other size however)
 */
 int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& bacthes, int nRobots, int robotCapacity);
+
+vector<int> getRobotTravelTimes(const Warehouse& warehouse, const vector<vector<int>>& batches, int nRobots, int robotCapacity);
