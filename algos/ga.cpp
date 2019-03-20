@@ -25,7 +25,7 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
   // To implement adaptive values for keepN and mutateN
 
 
-//  cout << "\nStarting GA -- " << "Generations: " << this->generations << " -- Population: " << this->population << "\n";
+  //  cout << "\nStarting GA -- " << "Generations: " << this->generations << " -- Population: " << this->population << "\n";
   // Generate chromosomes
   int orders = warehouse.getPackageLocations().size();
 
@@ -45,6 +45,12 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
 
   this->chromosomeSize = robotCapacity * nRobots;
   this->numObsOrders = vector<int>(orders);
+  this->apexChromosome = vector<int>{};
+  this->apexPerformance = -1e5;
+  this->chromosomeIDs.clear();
+
+  for (int i = 0; i < this->population; i++)
+    this->chromosomeIDs.push_back(i);
 
 
   if (baseChromosome.size() != this->chromosomeSize)
@@ -58,30 +64,23 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
 
   double totalFitness = 0;
   vector<double> fitnesses(chromosomes.size());
-
-  vector<int> apexChromosome;
-  double apexFitness = -1e6;
+  this->performances = vector<double>(chromosomes.size());
+  this->differences = vector<double>(chromosomes.size());
 
   for (int g = 0; g < this->generations; g++) {
-    totalFitness =this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
-
-    // Store apex
-    for (int i = 0; i < fitnesses.size(); i++) {
-      if (fitnesses[i] > apexFitness) {
-        apexFitness = fitnesses[i];
-        apexChromosome = chromosomes[i];
-      }
-    }
+    this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
 
 
     // TODO: Calculate how many to keep (Currently naive)
-    int keepN = int(this->population * 0.4);
+    int keepN = int(this->population * 0.2);
 
-    vector<int> elitists = this->select(fitnesses, totalFitness, keepN);
+    vector<int> elitists = this->select(fitnesses, keepN);
 
     // TODO: Calculate how much to mutate (Currenly naive)
-    int mutateN = max(1, int(this->chromosomeSize * 0.1));
-    this->crossovermutate(chromosomes, elitists, mutateN);
+    this->crossover(chromosomes, elitists);
+
+    int mutateN = int(this->chromosomeSize);
+    this->mutate(chromosomes, fitnesses, mutateN);
   }
 
 
@@ -92,8 +91,8 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
       solution.push_back(batch);
       batch.clear();
     }
-    if (apexChromosome[i] != -1) {
-      batch.push_back(apexChromosome[i]);
+    if (this->apexChromosome[i] != -1) {
+      batch.push_back(this->apexChromosome[i]);
     }
   }
 
@@ -103,52 +102,76 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
   return solution;
 }
 
-double ga::Ga::fitness(Chromosomes &chromosomes, 
+void ga::Ga::fitness(Chromosomes &chromosomes, 
     vector<double> &fitnesses, 
     int nRobots, 
     int robotCapacity, 
     const Warehouse &warehouse) {
-  double totalFitness = 0.0;
+
+  double performanceMean = 0.0;
+  double differenceMean = 0.0;
   for (int i = 0; i < chromosomes.size(); i++) {
-    int performance = -evaluateSolutionTime(warehouse, chromosomes[i], nRobots, robotCapacity);
+    double performance = double(-evaluateSolutionTime(warehouse, chromosomes[i], nRobots, robotCapacity));
+
+    // Update apex
+    if (performance > this->apexPerformance) {
+      this->apexPerformance = performance;
+      this->apexChromosome = chromosomes[i];
+    }
+
     int swappingDistance = 0;
     for (int j = 0; j < chromosomes.size(); j++) {
       swappingDistance += calcSwappingDistance(chromosomes[i], chromosomes[j]);
     }
-    // TODO: Normalize swapping and performance scores?
-    fitnesses[i] = this->alpha * double(performance) + this->beta * double(swappingDistance);
-    totalFitness += fitnesses[i];
+
+    this->performances[i] = performance;
+    this->differences[i] = swappingDistance;
+
+    performanceMean += performance;
+    differenceMean += swappingDistance;
   }
-  return totalFitness;
+
+  performanceMean /= double(chromosomes.size());
+  differenceMean /= double(chromosomes.size());
+
+  double performanceStd = 0.0;
+  double differenceStd = 0.0;
+  //Calculate variances
+  for (int i = 0; i < chromosomes.size(); i++) {
+    performanceStd += (performances[i] - performanceMean) * (performances[i] - performanceMean);
+    differenceStd += (differences[i] - differenceMean) * (differences[i] - differenceMean);
+  }
+
+  // Calculate sample standard deviation
+  performanceStd /= sqrt(chromosomes.size() - 1);
+  differenceStd /= sqrt(chromosomes.size() - 1);
+
+  // Now weigh the normalized scores
+  for (int i = 0; i < chromosomes.size(); i++) {
+    fitnesses[i] = this->alpha * ((performances[i] - performanceMean) / (performanceStd + 1e-4)) 
+      + this->beta * ((differences[i] - differenceMean) / (differenceStd + 1e-4));
+  }
+
+
+  return;
 }
 
 vector<int> ga::Ga::select(vector<double> &fitnesses, 
-    double totalFitness, 
     double keepN) {
-  // Nice pseudo code here https://en.wikipedia.org/wiki/Stochastic_universal_sampling
-  // Paper referenced in Kex Roulette-wheel selection via stochastic acceptance
 
-  int pDistance = int(totalFitness / keepN);
-  int start = this->rng() % pDistance;
+  sort(this->chromosomeIDs.begin(), this->chromosomeIDs.end(), [fitnesses](int i, int j) {
+      return fitnesses[i] > fitnesses[j];
+      });
 
   vector<int> elitists;
-  for (int i = 0; i < keepN; i++) {
-    int p = start + i * pDistance;
-    unsigned long j = 0;
-    double jsum = 0.0;
-    while (jsum < p && j < fitnesses.size()) {
-      jsum += fitnesses[j];
-      j++;
-    }
-    elitists.push_back(min(j, fitnesses.size() - 1));
-  }
+  for (int i = 0; i < keepN; i++)
+    elitists.push_back(this->chromosomeIDs[i]);
 
   return elitists;
 }
 
-void ga::Ga::crossovermutate(Chromosomes &chromosomes, 
-    vector<int> &elitists, 
-    int mutateN) {
+void ga::Ga::crossover(Chromosomes &chromosomes, 
+    vector<int> &elitists) {
   // Combine elitists to populate all chromosomes that is not in elitists
   int elitistIndex = 0;
   for (int i = 0; i < chromosomes.size(); i++) {
@@ -215,27 +238,54 @@ void ga::Ga::crossovermutate(Chromosomes &chromosomes,
       }
 
       // Now mutate the chromosome
-      for (int j = 0; j < mutateN; j++) {
-        int i1 = this->rng() % this->chromosomeSize;
-        int i2 = this->rng() % this->chromosomeSize;
-        swap(chromosomes[i][i1], chromosomes[i][i2]);
-      }
+    }
+  }
+}
 
-      // Empty data (For chromosome validation)
-      fill(this->numObsOrders.begin(), this->numObsOrders.end(), 0);
-      // vector with num orders
-      for (int j = 0; j < this->chromosomeSize; j++) {
-        if (chromosomes[i][j] != -1) {
-          this->numObsOrders[chromosomes[i][j]]++;
-        }
-      }
+void ga::Ga::mutate(Chromosomes &chromosomes, vector<double> &fitnesses, int mutations) {
 
-      for(int j = 0; j < numObsOrders.size(); j++) {
-        if(numObsOrders[j] != 1) {
-          throw runtime_error("An order did not occur exactly once after crossover");
-        }
-      }
+  double max_fit = 0.0;
+  double min_fit = 0.0;
+  for (int i = 0; i < fitnesses.size(); i++) {
+    max_fit = max(max_fit, fitnesses[i]);
+    min_fit = min(min_fit, fitnesses[i]);
+  }
 
+  // Have a offset because not sure if negative values is ok.
+  double offset = abs(min(0.0, min_fit));
+
+  min_fit += offset;
+  max_fit += offset;
+
+
+  // Fit f 
+  // f(min) = 0.5
+  // f(max) = 0.01
+  // aB^x
+  // 
+  // ab^min = 0.5
+  // ab^max = 0.01
+  //
+  // a = 0.5/(b^min)
+  // b^max * 0.5/(b^min) = 0.01
+  // b^(max - min) * 0.5 = 0.01
+  // b^(max - min) = 0.02
+  // log(b^(max - min)) = (max - min)log(b)
+  // b = e^(log(0.02) / (max - min))
+  // a = 0.5/(b^min)
+
+  double min_mut = 0.01;
+  double max_mut = 0.5;
+
+  double b = exp(log(min_mut * 2) / (max_fit - min_fit + 1e-6));
+  double a = max_mut / pow(b, min_fit);
+
+  for (int i = 0; i < chromosomes.size(); i++) {
+    int mutate = a*pow(b, fitnesses[i] + offset) * mutations;
+    for (int j = 0; j < mutate; j++) {
+      int i1 = this->rng() % this->chromosomeSize;
+      int i2 = this->rng() % this->chromosomeSize;
+      swap(chromosomes[i][i1], chromosomes[i][i2]);
     }
   }
 }

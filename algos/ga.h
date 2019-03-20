@@ -14,6 +14,13 @@ namespace ga {
   class Ga {
     vector<int> numObsOrders;
     unsigned int chromosomeSize;
+    vector<int> chromosomeIDs;
+    vector<int> apexChromosome;
+    double apexPerformance;
+
+    vector<double> performances;
+    vector<double> differences;
+
     mt19937 rng;
     public:
     int population;
@@ -23,9 +30,10 @@ namespace ga {
     // This vector of vector of ints is a splitted chromosome
     vector<vector<int>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse);
 
-    double fitness(Chromosomes &chromosomes, vector<double> &fitnesses, int nRobots, int robotCapacity, const Warehouse &warehouse);
-    vector<int> select(vector<double> &fitnesses, double totalFitness, double keepN);
-    void crossovermutate(Chromosomes &chromosomes, vector<int> &elitists, int mutateN);
+    void fitness(Chromosomes &chromosomes, vector<double> &fitnesses, int nRobots, int robotCapacity, const Warehouse &warehouse);
+    vector<int> select(vector<double> &fitnesses, double keepN);
+    void crossover(Chromosomes &chromosomes, vector<int> &elitists);
+    void mutate(Chromosomes &chromosomes, vector<double> &fitnesses, int mutations);
 
     Ga(int population, 
         int generations, 
