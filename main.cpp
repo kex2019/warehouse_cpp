@@ -53,7 +53,7 @@ public:
     }
     void appendResult(int result, int nRobots, int robotCapacity, int nPackages, int seed, long millis, const vector<int> &robotTravelTimes) {
         int id = nextId();
-        resultFile << id << "," << result << "," << "," << robotTravelTimes.size() << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
+        resultFile << id << "," << result << "," << robotTravelTimes.size() << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
         resultFile.flush();
         // Print the stats for every robot
         robotResultFile << id << "," << robotTravelTimes.size() << ",";
@@ -93,6 +93,12 @@ vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, in
     cout << "Completed 100" << '%' << endl;
     return results;
 }
+
+typedef tuple<WarehouseInfo
+
+
+template<typename T>
+vector<int> run(ResultHandler &resultHandler, T t, )
 
 int main() {
     WarehouseInfo info;
