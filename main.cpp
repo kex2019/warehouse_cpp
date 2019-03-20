@@ -53,7 +53,7 @@ public:
     }
     void appendResult(int result, int nRobots, int robotCapacity, int nPackages, int seed, long millis, const vector<int> &robotTravelTimes) {
         int id = nextId();
-        resultFile << id << result << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
+        resultFile << id << "," << result << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
         resultFile.flush();
         // Print the stats for every robot
         robotResultFile << id << "," << robotTravelTimes.size() << ",";
@@ -118,7 +118,7 @@ int main() {
     
     auto cws = run(cwsr, cw::cw(), info, numberRobots, capacity, seeds);
     auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, capacity, seeds);
-    //auto tabu = run(tabur, T, info, numberRobots, capacity, seeds);
+    auto tabu = run(tabur, T, info, numberRobots, capacity, seeds);
     auto ga = run(gar, G, info, numberRobots, capacity, seeds);
 
     int accCWS = 0;
