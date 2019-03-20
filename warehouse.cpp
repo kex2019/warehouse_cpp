@@ -101,6 +101,56 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>&
     return *latestRobots.begin();
 }
 
+vector<int> getRobotTravelTimes(const Warehouse& warehouse, const vector<vector<int>>& batches, int nRobots, int robotCapacity) {
+    vector<int> takenPackages(warehouse.getPackageLocations().size(), 0);
+    set<int> earliestRobots;
+    set<int, greater<>> latestRobots;
+    bool invalid = false;
+
+    for(int i = 0; i < batches.size(); i++) {
+        if(batches[i].size() == 0) {
+            continue; // No items for this robot :'(
+        }
+        if(batches[i].size() > robotCapacity) {
+            cerr << "Batch: ";
+            inlineCerrVec(batches[i]);
+            cerr << " has size: " << batches[i].size() << " while the robot can only carry: " << robotCapacity << endl;
+            invalid = true;
+        }
+        int tseq = warehouse.getTimeForSequence(batches[i]);
+        if(nRobots > earliestRobots.size()) {
+            earliestRobots.insert(tseq);
+            latestRobots.insert(tseq);
+        } else {
+            // Remove the earliest robot
+            int earliest = *earliestRobots.begin();
+            earliestRobots.erase(earliestRobots.begin());
+            earliestRobots.insert(tseq + earliest);
+            latestRobots.insert(tseq + earliest);
+        }
+        for(int j : batches[i]) {
+            takenPackages[j]++;
+        }
+    }
+
+    for(int i = 0; i < takenPackages.size(); i++) {
+        if(takenPackages[i] == 0) {
+            cerr << "Package " << i << " was not taken" << endl;
+            invalid = true;
+        }
+        if(takenPackages[i] > 1) {
+            cerr << "Package " << i << " was taken " << takenPackages[i] << " times" << endl;
+            invalid = true;
+        }
+    }
+
+    if(invalid) {
+        throw runtime_error("The solution was invalid, check stderr for reason");
+    }
+
+    vector<int> results(latestRobots.begin(), latestRobots.end());    
+    return results;
+}
 
 Warehouse generateRandomWarehouse(WarehouseInfo info, long seed) {
     if (info.crossAilesWidth < 2) {
