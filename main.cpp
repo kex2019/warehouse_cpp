@@ -94,12 +94,14 @@ vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, in
     return results;
 }
 
-typedef tuple<WarehouseInfo
+/*typedef tuple<WarehouseInfo
 
 
 template<typename T>
-vector<int> run(ResultHandler &resultHandler, T t, )
+vector<int> run(ResultHandler &resultHandler, T t) {
 
+}
+*/
 int main() {
     WarehouseInfo info;
     info.aisles = 8;
