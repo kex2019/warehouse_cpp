@@ -67,6 +67,32 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
   this->performances = vector<double>(chromosomes.size());
   this->differences = vector<double>(chromosomes.size());
 
+
+  // Fit f 
+  // f(0) = max_exploration
+  // f(generations) = min_exploration
+  // aB^x
+  //
+  // Example
+  //
+  // ab^min = 0.5
+  // ab^max = 0.01
+  //
+  // a = 0.5/(b^min)
+  // b^max * 0.5/(b^min) = 0.01
+  // b^(max - min) * 0.5 = 0.01
+  // b^(max - min) = 0.02
+  // log(b^(max - min)) = (max - min)log(b)
+  // b = e^(log(0.02) / (max - min))
+  // a = 0.5/(b^min)
+
+  //double selectZero = 0.5
+
+
+  //double selectA
+
+  
+
   for (int g = 0; g < this->generations; g++) {
     this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
 
@@ -76,9 +102,9 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
 
     vector<int> elitists = this->select(fitnesses, keepN);
 
-    // TODO: Calculate how much to mutate (Currenly naive)
     this->crossover(chromosomes, elitists);
 
+    // TODO: Calculate how much to mutate (Currenly naive)
     int mutateN = int(this->chromosomeSize);
     this->mutate(chromosomes, fitnesses, mutateN);
   }
@@ -244,25 +270,27 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
 
 void ga::Ga::mutate(Chromosomes &chromosomes, vector<double> &fitnesses, int mutations) {
 
-  double max_fit = 0.0;
-  double min_fit = 0.0;
+  double maxFit = 0.0;
+  double minFit = 0.0;
   for (int i = 0; i < fitnesses.size(); i++) {
-    max_fit = max(max_fit, fitnesses[i]);
-    min_fit = min(min_fit, fitnesses[i]);
+    maxFit = max(maxFit, fitnesses[i]);
+    minFit = min(minFit, fitnesses[i]);
   }
 
   // Have a offset because not sure if negative values is ok.
-  double offset = abs(min(0.0, min_fit));
+  double offset = abs(min(0.0, minFit));
 
-  min_fit += offset;
-  max_fit += offset;
+  minFit += offset;
+  maxFit += offset;
 
 
   // Fit f 
-  // f(min) = 0.5
-  // f(max) = 0.01
+  // f(min) = max_mut
+  // f(max) = min_mut
   // aB^x
   // 
+  //Example
+  //
   // ab^min = 0.5
   // ab^max = 0.01
   //
@@ -275,10 +303,10 @@ void ga::Ga::mutate(Chromosomes &chromosomes, vector<double> &fitnesses, int mut
   // a = 0.5/(b^min)
 
   double min_mut = 0.01;
-  double max_mut = 0.5;
+  double max_mut = 0.8;
 
-  double b = exp(log(min_mut * 2) / (max_fit - min_fit + 1e-6));
-  double a = max_mut / pow(b, min_fit);
+  double b = exp(log(min_mut * 2) / (maxFit - minFit + 1e-6));
+  double a = max_mut / pow(b, minFit);
 
   for (int i = 0; i < chromosomes.size(); i++) {
     int mutate = a*pow(b, fitnesses[i] + offset) * mutations;
