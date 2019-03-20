@@ -37,6 +37,12 @@ vector<vector<int>> tabu::nswapgenerator::next() {
             return solution; // Return initial solution
         }
 
+
+        if(currentFirst == currentSecond) {
+            cout << "Checking " << currentFirst << ", " << currentSecond << endl;
+            throw runtime_error("xdxd");
+        }
+
         // Swap the orders, 
         swap(solution[currentFirst][currentFirstOrder], solution[currentSecond][currentSecondOrder]);
         if(currentFirst == solution.size() - 1 && currentSecond == solution.size() - 2 && currentFirstOrder == solution[currentFirst].size() - 1 && currentSecondOrder == solution[currentSecond].size()) {
@@ -58,21 +64,21 @@ void tabu::nswapgenerator::doBestMove(int t) {
  
 tuple<int,int,int,int> tabu::nswapgenerator::getBestMove() {
     int a, b;
-    a = get<0>(bestMove) >= get<1>(bestMove) ? get<0>(bestMove) : get<1>(bestMove);
-    b = get<0>(bestMove) < get<1>(bestMove) ? get<1>(bestMove) : get<0>(bestMove);
+    a = get<0>(bestMove) < get<1>(bestMove) ? get<0>(bestMove) : get<1>(bestMove);
+    b = a == get<0>(bestMove) ? get<1>(bestMove) : get<0>(bestMove);
     int c, d;
-    c = get<2>(bestMove) >= get<3>(bestMove) ? get<2>(bestMove) : get<3>(bestMove);
-    d = get<2>(bestMove) < get<3>(bestMove) ? get<3>(bestMove) : get<2>(bestMove);
+    c = get<2>(bestMove) < get<3>(bestMove) ? get<2>(bestMove) : get<3>(bestMove);
+    d = c == get<2>(bestMove) ? get<3>(bestMove) : get<2>(bestMove);
     return {a, b, c, d};
 }
 
 tuple<int,int,int,int> tabu::nswapgenerator::getMove() {
     int a, b;
-    a = currentFirst >= currentSecond ? currentFirst : currentSecond;
-    b = currentFirst < currentSecond ? currentSecond : currentFirst;
+    a = currentFirst < currentSecond ? currentFirst : currentSecond;
+    b = a == currentFirst ? currentSecond : currentFirst;
     int c, d;
-    c = currentFirstOrder >= currentSecondOrder ? currentFirstOrder : currentSecondOrder;
-    d = currentFirstOrder < currentSecondOrder ? currentSecondOrder : currentFirstOrder;
+    c = currentFirstOrder < currentSecondOrder ? currentFirstOrder : currentSecondOrder;
+    d = c == currentFirstOrder ? currentSecondOrder : currentFirstOrder;
     return {a, b, c, d};
 }
 
@@ -82,15 +88,15 @@ void tabu::nshiftgenerator::doBestMove(int t) {
 
 tuple<int,int,int> tabu::nshiftgenerator::getBestMove() {
     int a, b;
-    a = get<0>(bestMove) >= get<1>(bestMove) ? get<0>(bestMove) : get<1>(bestMove);
-    b = get<0>(bestMove) < get<1>(bestMove) ? get<1>(bestMove) : get<0>(bestMove);
+    a = get<0>(bestMove) < get<1>(bestMove) ? get<0>(bestMove) : get<1>(bestMove);
+    b = a == get<0>(bestMove) ? get<1>(bestMove) : get<0>(bestMove);
     return {a, b, solution[get<1>(bestMove)].size()};
 }
 
 tuple<int,int,int> tabu::nshiftgenerator::getMove() {
     int a, b;
-    a = currentFirst >= currentSecond ? currentFirst : currentSecond;
-    b = currentFirst < currentSecond ? currentSecond : currentFirst;
+    a = currentFirst < currentSecond ? currentFirst : currentSecond;
+    b = a == currentFirst ? currentSecond : currentFirst;
     return {a, b, solution[currentSecond].size()};
 }
 
@@ -195,6 +201,7 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
                     nextBestSolution = next;
                     gen.setBestMove();
                 } else if (!switched) {
+                    auto m = gen.getMove();
                     switched = true;
                     nextBestQuality = nextQuality;
                     nextBestSolution = next;
