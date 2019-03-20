@@ -86,26 +86,31 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
   // b = e^(log(0.02) / (max - min))
   // a = 0.5/(b^min)
 
-  //double selectZero = 0.5
+  double selectStart = 0.5;
+  double selectEnd = 0.05;
 
+  double mutateStart = 1.0;
+  double mutateEnd = 0.2;
+
+  double selectB = exp(log(selectEnd * 2) / (this->generations + 1e-6));
+  double selectA = selectStart;
+
+  double mutateB = exp(log(mutateEnd * 2) / (this->generations + 1e-6));
+  double mutateA = mutateStart;
 
   //double selectA
-
-  
 
   for (int g = 0; g < this->generations; g++) {
     this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
 
 
-    // TODO: Calculate how many to keep (Currently naive)
-    int keepN = int(this->population * 0.2);
+    int keepN = max(1, int(selectA*pow(selectB, g) * this->generations));
 
     vector<int> elitists = this->select(fitnesses, keepN);
 
     this->crossover(chromosomes, elitists);
 
-    // TODO: Calculate how much to mutate (Currenly naive)
-    int mutateN = int(this->chromosomeSize);
+    int mutateN = max(1, int(mutateA*pow(mutateB, g) * this->generations));
     this->mutate(chromosomes, fitnesses, mutateN);
   }
 
@@ -285,8 +290,8 @@ void ga::Ga::mutate(Chromosomes &chromosomes, vector<double> &fitnesses, int mut
 
 
   // Fit f 
-  // f(min) = max_mut
-  // f(max) = min_mut
+  // f(min) = maxMut
+  // f(max) = minMut
   // aB^x
   // 
   //Example
@@ -302,14 +307,14 @@ void ga::Ga::mutate(Chromosomes &chromosomes, vector<double> &fitnesses, int mut
   // b = e^(log(0.02) / (max - min))
   // a = 0.5/(b^min)
 
-  double min_mut = 0.01;
-  double max_mut = 0.8;
+  double minMut = 0.01;
+  double maxMut = 0.8;
 
-  double b = exp(log(min_mut * 2) / (maxFit - minFit + 1e-6));
-  double a = max_mut / pow(b, minFit);
+  double b = exp(log(minMut * 2) / (maxFit - minFit + 1e-6));
+  double a = maxMut / pow(b, minFit);
 
   for (int i = 0; i < chromosomes.size(); i++) {
-    int mutate = a*pow(b, fitnesses[i] + offset) * mutations;
+    int mutate = int(a*pow(b, fitnesses[i] + offset) * mutations);
     for (int j = 0; j < mutate; j++) {
       int i1 = this->rng() % this->chromosomeSize;
       int i2 = this->rng() % this->chromosomeSize;

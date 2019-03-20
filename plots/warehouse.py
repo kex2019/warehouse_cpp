@@ -4,6 +4,7 @@ import pandas as pd
 
 def read(data_str: str) -> pd.DataFrame:
     """Read content of file to dataframe."""
+    # ids = []
     scores = []
     robots = []
     capacity = []
@@ -14,7 +15,7 @@ def read(data_str: str) -> pd.DataFrame:
     for line in data_str.split("\n"):
         if line == "":
             continue
-        s, r, c, p, sd, cp = line.split(",")
+        _, s, r, c, p, sd, cp = line.split(",")
 
         scores.append(float(s))
         robots.append(float(r))
