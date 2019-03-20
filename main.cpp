@@ -103,22 +103,23 @@ int main() {
     info.shelfHeight = 20;
     info.packages = 40;
 
+    int capacity = 4;
     int numberRobots = 10;
 
     // TODO Run with many more generations and bigger population size
-    auto G = ga::Ga(500, 50, 1.0, 0.0);
+    auto G = ga::Ga(200, 400, 1.0, 0.0001);
     auto T = tabu::Tabu();
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
     ResultHandler gar("results", "ga");
     ResultHandler tabur("results", "tabu");
 
-    auto seeds = generateSeeds(1000);
+    auto seeds = generateSeeds(20);
     
-    auto cws = run(cwsr, cw::cw(), info, numberRobots, 5, seeds);
-    auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, 5, seeds);
-    //auto tabu = run(tabur, T, info, numberRobots, 5, seeds);
-    auto ga = run(gar, G, info, numberRobots, 5, seeds);
+    auto cws = run(cwsr, cw::cw(), info, numberRobots, capacity, seeds);
+    auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, capacity, seeds);
+    //auto tabu = run(tabur, T, info, numberRobots, capacity, seeds);
+    auto ga = run(gar, G, info, numberRobots, capacity, seeds);
 
     int accCWS = 0;
     int accGreedys = 0;
