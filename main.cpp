@@ -53,7 +53,7 @@ public:
     }
     void appendResult(int result, int nRobots, int robotCapacity, int nPackages, int seed, long millis, const vector<int> &robotTravelTimes) {
         int id = nextId();
-        resultFile << id << "," << result << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
+        resultFile << id << "," << result << "," << "," << robotTravelTimes.size() << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
         resultFile.flush();
         // Print the stats for every robot
         robotResultFile << id << "," << robotTravelTimes.size() << ",";
