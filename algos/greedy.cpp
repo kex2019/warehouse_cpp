@@ -3,7 +3,7 @@
 int findClosest(const vector<vector<int>> & lens, vector<bool> used, int from) {
     int minIdx = -1;
     int minDistance = 1e6;
-    for(int i = 2; i < lens.size(); i++) {
+    for(size_t i = 2; i < lens.size(); i++) {
         if(lens[0][i] < minDistance && !used[i - 2]) {
             minIdx = i - 2;
             minDistance = lens[0][i];
@@ -12,8 +12,8 @@ int findClosest(const vector<vector<int>> & lens, vector<bool> used, int from) {
     return minIdx;
 }
 
-vector<vector<int>> greedy::greedy::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
-    int nTaken = 0;
+vector<vector<int>> greedy::greedy::solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse) {
+    size_t nTaken = 0;
     vector<vector<int>> batches;
     vector<bool> used(warehouse.getPackageLocations().size(), false);
     auto &lengths = warehouse.getPathLengths();
@@ -26,10 +26,8 @@ vector<vector<int>> greedy::greedy::solve(int nRobots, int robotCapacity, const 
         batch.push_back(minIdx);
         do {
             minIdx = findClosest(lengths, used, batch.back());
-            // TODO: DEBUG You fail...
             if(minIdx == -1) {
-                cerr << "Could not find minimum" << endl;
-                throw runtime_error("Could not find minimum");
+                break;
             } 
             used[minIdx] = true;
             nTaken++;

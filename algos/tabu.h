@@ -34,19 +34,19 @@ namespace tabu {
     };
 
     class nswapgenerator {
-        int currentFirst = 0;
-        int currentSecond = 0;
-        int currentFirstOrder = 0;
-        int currentSecondOrder = 0;
-        int robotCapacity = 0;
-        int nRobots = 0;
+        size_t currentFirst = 0;
+        size_t currentSecond = 0;
+        size_t currentFirstOrder = 0;
+        size_t currentSecondOrder = 0;
+        size_t robotCapacity = 0;
+        size_t nRobots = 0;
         bool isEof = false;
         TabuList<tuple<int,int,int,int>> tabus;
         tuple<int,int,int,int> bestMove;
 
     public:
         vector<vector<int>> solution;
-        nswapgenerator(int lifeTime, int nRobots, int robotCapacity, const vector<vector<int>> &solution) : solution(solution), nRobots(nRobots), robotCapacity(robotCapacity), tabus(lifeTime){}
+        nswapgenerator(int lifeTime, size_t nRobots, size_t robotCapacity, const vector<vector<int>> &solution) : robotCapacity(robotCapacity), nRobots(nRobots), tabus(lifeTime), solution(solution){}
         vector<vector<int>> next();
         bool eof();
         tuple<int,int,int,int> getBestMove();
@@ -67,18 +67,18 @@ namespace tabu {
 
     };
     class nshiftgenerator {
-        int currentFirst = 0;
-        int currentSecond = 0;
+        size_t currentFirst = 0;
+        size_t currentSecond = 0;
         int currentOrder = -1;
-        int nRobots = 0;
+        size_t nRobots = 0;
         bool isEof = false;
-        int robotCapacity = 0;
+        size_t robotCapacity = 0;
         TabuList<tuple<int,int,int>> tabus;
         tuple<int,int,int> bestMove;
         set<tuple<int,int,int>> checked;
     public:
         vector<vector<int>> solution;
-        nshiftgenerator(int lifeTime, int nRobots, int robotCapacity, const vector<vector<int>> &solution) : solution(solution), nRobots(nRobots), robotCapacity(robotCapacity), tabus(lifeTime){}
+        nshiftgenerator(int lifeTime, size_t nRobots, size_t robotCapacity, const vector<vector<int>> &solution) : nRobots(nRobots), robotCapacity(robotCapacity), tabus(lifeTime), solution(solution){}
         pair<vector<vector<int>>, bool> next();
         void doBestMove(int t);
         bool eof();

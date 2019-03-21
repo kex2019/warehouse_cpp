@@ -75,10 +75,10 @@ tuple<int,int,int,int> tabu::nswapgenerator::getBestMove() {
 tuple<int,int,int,int> tabu::nswapgenerator::getMove() {
     int a, b;
     a = currentFirst < currentSecond ? currentFirst : currentSecond;
-    b = a == currentFirst ? currentSecond : currentFirst;
+    b = a == static_cast<int>(currentFirst) ? currentSecond : currentFirst;
     int c, d;
     c = currentFirstOrder < currentSecondOrder ? currentFirstOrder : currentSecondOrder;
-    d = c == currentFirstOrder ? currentSecondOrder : currentFirstOrder;
+    d = c == static_cast<int>(currentFirstOrder) ? currentSecondOrder : currentFirstOrder;
     return {a, b, c, d};
 }
 
@@ -96,7 +96,7 @@ tuple<int,int,int> tabu::nshiftgenerator::getBestMove() {
 tuple<int,int,int> tabu::nshiftgenerator::getMove() {
     int a, b;
     a = currentFirst < currentSecond ? currentFirst : currentSecond;
-    b = a == currentFirst ? currentSecond : currentFirst;
+    b = a == static_cast<int>(currentFirst) ? currentSecond : currentFirst;
     return {a, b, solution[currentSecond].size()};
 }
 
@@ -172,10 +172,11 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
         if(t >= 10000) {
             break;
         }
+        cout << " T:             " << t << "       \r";
+        cout.flush();
 
         gen.step(t); // Remove "old" tabu moves at this point
         gen.reset(solution);
-        int nChecked = 0;
         int quality = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
         vector<vector<int>> nextBestSolution = solution;
         int nextBestQuality = quality;
@@ -202,7 +203,6 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
 
             auto next = nexts.first;
             // Check it's not on tabu
-            auto move = gen.getMove(); // Automagically checks the move is valid
             if(gen.eof()) {
                 break;
             }
@@ -215,7 +215,6 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
                     nextBestSolution = next;
                     gen.setBestMove();
                 } else if (!switched) {
-                    auto m = gen.getMove();
                     switched = true;
                     nextBestQuality = nextQuality;
                     nextBestSolution = next;

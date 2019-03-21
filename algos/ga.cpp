@@ -9,7 +9,7 @@
 // If we need linear, use Cayley distance? (eg. cycles in the permutation). compose c1 with the inverse of c2 and count the number of cycles
 int calcSwappingDistance(vector<int> c1, vector<int> c2) {
   int nSame = 0;
-  for(int i = 0; i < c1.size(); i++) {
+  for(size_t i = 0; i < c1.size(); i++) {
     if(c1[i] == c2[i])
       nSame++;
   }
@@ -17,8 +17,8 @@ int calcSwappingDistance(vector<int> c1, vector<int> c2) {
   return c1.size() - nSame;
 }
 
-vector<vector<int>> ga::Ga::solve(int nRobots, 
-    int robotCapacity, 
+vector<vector<int>> ga::Ga::solve(size_t nRobots, 
+    size_t robotCapacity, 
     const Warehouse &warehouse) {
 
   // TODO: Read this paper Genetic Algorithm with adaptive elitist-population strategies for multimodal function optimization
@@ -27,20 +27,18 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
 
   //  cout << "\nStarting GA -- " << "Generations: " << this->generations << " -- Population: " << this->population << "\n";
   // Generate chromosomes
-  int orders = warehouse.getPackageLocations().size();
-
-
+  size_t orders = warehouse.getPackageLocations().size();
   vector<int> baseChromosome;
 
   // Add orders to chromosome
-  for (int i = 0; i < orders; i++)
-    baseChromosome.push_back(i);
+  for (size_t i = 0; i < orders; i++)
+    baseChromosome.push_back(static_cast<int>(i));
 
   if (robotCapacity * nRobots < orders)
     throw runtime_error("Cannot plan when more orders than can be picked up.");
 
   // Pad the chromosomes
-  for (int i = 0; i < robotCapacity * nRobots - orders; i++)
+  for (size_t i = 0; i < robotCapacity * nRobots - orders; i++)
     baseChromosome.push_back(-1);
 
   this->chromosomeSize = robotCapacity * nRobots;
@@ -49,20 +47,19 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
   this->apexPerformance = -1e5;
   this->chromosomeIDs.clear();
 
-  for (int i = 0; i < this->population; i++)
-    this->chromosomeIDs.push_back(i);
+  for (size_t i = 0; i < this->population; i++)
+    this->chromosomeIDs.push_back(static_cast<int>(i));
 
 
   if (baseChromosome.size() != this->chromosomeSize)
     throw runtime_error("baseChromosome size does not match chromosome size");
 
   Chromosomes chromosomes;
-  for (int i = 0; i < this->population; i++) {
+  for (size_t i = 0; i < this->population; i++) {
     shuffle(baseChromosome.begin(), baseChromosome.end(), default_random_engine(this->rng()));
     chromosomes.push_back(baseChromosome);
   }
 
-  double totalFitness = 0;
   vector<double> fitnesses(chromosomes.size());
   this->performances = vector<double>(chromosomes.size());
   this->differences = vector<double>(chromosomes.size());
@@ -100,7 +97,7 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
 
   //double selectA
 
-  for (int g = 0; g < this->generations; g++) {
+  for (size_t g = 0; g < this->generations; g++) {
     this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
 
 
@@ -117,7 +114,7 @@ vector<vector<int>> ga::Ga::solve(int nRobots,
 
   vector<vector<int>> solution;
   vector<int> batch;
-  for (int i = 0; i < chromosomeSize; i++) {
+  for (size_t i = 0; i < chromosomeSize; i++) {
     if (i % robotCapacity == 0 && i != 0) {
       solution.push_back(batch);
       batch.clear();
@@ -141,7 +138,7 @@ void ga::Ga::fitness(Chromosomes &chromosomes,
 
   double performanceMean = 0.0;
   double differenceMean = 0.0;
-  for (int i = 0; i < chromosomes.size(); i++) {
+  for (size_t i = 0; i < chromosomes.size(); i++) {
     double performance = double(-evaluateSolutionTime(warehouse, chromosomes[i], nRobots, robotCapacity));
 
     // Update apex
@@ -151,7 +148,7 @@ void ga::Ga::fitness(Chromosomes &chromosomes,
     }
 
     int swappingDistance = 0;
-    for (int j = 0; j < chromosomes.size(); j++) {
+    for (size_t j = 0; j < chromosomes.size(); j++) {
       swappingDistance += calcSwappingDistance(chromosomes[i], chromosomes[j]);
     }
 
@@ -168,7 +165,7 @@ void ga::Ga::fitness(Chromosomes &chromosomes,
   double performanceStd = 0.0;
   double differenceStd = 0.0;
   //Calculate variances
-  for (int i = 0; i < chromosomes.size(); i++) {
+  for (size_t i = 0; i < chromosomes.size(); i++) {
     performanceStd += (performances[i] - performanceMean) * (performances[i] - performanceMean);
     differenceStd += (differences[i] - differenceMean) * (differences[i] - differenceMean);
   }
@@ -178,7 +175,7 @@ void ga::Ga::fitness(Chromosomes &chromosomes,
   differenceStd /= sqrt(chromosomes.size() - 1);
 
   // Now weigh the normalized scores
-  for (int i = 0; i < chromosomes.size(); i++) {
+  for (size_t i = 0; i < chromosomes.size(); i++) {
     fitnesses[i] = this->alpha * ((performances[i] - performanceMean) / (performanceStd + 1e-4)) 
       + this->beta * ((differences[i] - differenceMean) / (differenceStd + 1e-4));
   }
@@ -204,9 +201,9 @@ vector<int> ga::Ga::select(vector<double> &fitnesses,
 void ga::Ga::crossover(Chromosomes &chromosomes, 
     vector<int> &elitists) {
   // Combine elitists to populate all chromosomes that is not in elitists
-  int elitistIndex = 0;
-  for (int i = 0; i < chromosomes.size(); i++) {
-    if (elitistIndex < elitists.size() && i == elitists[elitistIndex]) {
+  size_t elitistIndex = 0;
+  for (size_t i = 0; i < chromosomes.size(); i++) {
+    if (elitistIndex < elitists.size() && static_cast<int>(i) == elitists[elitistIndex]) {
       elitistIndex++;
     } else {
       // Select two elitists & combine them and replace the chromosome at position i with that chromosome
@@ -223,13 +220,13 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
       for (int j = 0; j < p2; j++)
         chromosomes[i][j] = chromosomes[e2][j];
 
-      for (int j = p1; j < this->chromosomeSize; j++)
+      for (size_t j = p1; j < this->chromosomeSize; j++)
         chromosomes[i][j] = chromosomes[e2][j];
 
       // Empty data (For chromosome validation)
       fill(this->numObsOrders.begin(), this->numObsOrders.end(), 0);
       // vector with num orders
-      for (int j = 0; j < this->chromosomeSize; j++) {
+      for (size_t j = 0; j < this->chromosomeSize; j++) {
         if (chromosomes[i][j] != -1) {
           this->numObsOrders[chromosomes[i][j]]++;
         }
@@ -237,14 +234,14 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
 
       // Find missing orders
       vector<int> missingOrders;
-      for(int j = 0; j < this->numObsOrders.size(); j++) {
+      for(size_t j = 0; j < this->numObsOrders.size(); j++) {
         if (this->numObsOrders[j] == 0) {
           missingOrders.push_back(j);
         }
       }
 
       // Adjust for missing orders by removing duplicates
-      for (int j = 0; j < this->chromosomeSize && missingOrders.size(); j++) {
+      for (size_t j = 0; j < this->chromosomeSize && missingOrders.size(); j++) {
         if (chromosomes[i][j] != -1 && this->numObsOrders[chromosomes[i][j]] == 2) {
           this->numObsOrders[chromosomes[i][j]]--;
           chromosomes[i][j] = missingOrders.front();
@@ -253,7 +250,7 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
       }
 
       // Adjust for missing orders by filling padding
-      for (int j = 0; j < this->chromosomeSize && missingOrders.size(); j++) {
+      for (size_t j = 0; j < this->chromosomeSize && missingOrders.size(); j++) {
         if (chromosomes[i][j] == -1) {
           chromosomes[i][j] = missingOrders.front();
           missingOrders.erase(missingOrders.begin());
@@ -261,7 +258,7 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
       }
 
       // Remove all duplicates
-      for (int j = 0; j < this->chromosomeSize; j++) {
+      for (size_t j = 0; j < this->chromosomeSize; j++) {
         if (this->numObsOrders[chromosomes[i][j]] == 2) {
           numObsOrders[chromosomes[i][j]]--;
           chromosomes[i][j] = -1;
@@ -277,7 +274,7 @@ void ga::Ga::mutate(Chromosomes &chromosomes, vector<double> &fitnesses, int mut
 
   double maxFit = 0.0;
   double minFit = 0.0;
-  for (int i = 0; i < fitnesses.size(); i++) {
+  for (size_t i = 0; i < fitnesses.size(); i++) {
     maxFit = max(maxFit, fitnesses[i]);
     minFit = min(minFit, fitnesses[i]);
   }
@@ -313,7 +310,7 @@ void ga::Ga::mutate(Chromosomes &chromosomes, vector<double> &fitnesses, int mut
   double b = exp(log(minMut * 2) / (maxFit - minFit + 1e-6));
   double a = maxMut / pow(b, minFit);
 
-  for (int i = 0; i < chromosomes.size(); i++) {
+  for (size_t i = 0; i < chromosomes.size(); i++) {
     int mutate = int(a*pow(b, fitnesses[i] + offset) * mutations);
     for (int j = 0; j < mutate; j++) {
       int i1 = this->rng() % this->chromosomeSize;
