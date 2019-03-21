@@ -6,6 +6,7 @@ def read(data_str: str) -> pd.DataFrame:
     """Read content of file to dataframe."""
     # ids = []
     scores = []
+    # robots = []
     robots = []
     capacity = []
     packages = []
@@ -15,10 +16,10 @@ def read(data_str: str) -> pd.DataFrame:
     for line in data_str.split("\n"):
         if line == "":
             continue
-        _, s, r, c, p, sd, cp = line.split(",")
+        _, s, u, _, c, p, sd, cp = line.split(",")
 
         scores.append(float(s))
-        robots.append(float(r))
+        robots.append(float(u))
         capacity.append(float(c))
         packages.append(float(p))
         seed.append(float(sd))

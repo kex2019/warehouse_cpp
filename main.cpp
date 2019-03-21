@@ -106,22 +106,36 @@ vector<int> run(ResultHandler &resultHandler, T t, const vector<tuple<WarehouseI
 }
 
 int main() {
-    WarehouseInfo info;
-    info.aisles = 8;
-    info.aisleWidth = 2;
-    info.crossAiles = 2;
-    info.crossAilesWidth = 2;
-    info.shelfHeight = 20;
-    info.packages = 40;
+    WarehouseInfo info_small;
+    info_small.aisles = 4;
+    info_small.aisleWidth = 2;
+    info_small.crossAiles = 2;
+    info_small.crossAilesWidth = 2;
+    info_small.shelfHeight = 10;
+    info_small.packages = 40;
 
-    int capacity = 4;
-    int numberRobots = 10;
+    WarehouseInfo info_medium;
+    info_medium.aisles = 20;
+    info_medium.aisleWidth = 3;
+    info_medium.crossAiles = 3;
+    info_medium.crossAilesWidth = 3;
+    info_medium.shelfHeight = 20;
+    info_medium.packages = 160;
+
+
+    WarehouseInfo info_large;
+    info_medium.aisles = 40;
+    info_medium.aisleWidth = 4;
+    info_medium.crossAiles = 4;
+    info_medium.crossAilesWidth = 4;
+    info_medium.shelfHeight = 30;
+    info_medium.packages = 640;
 
     // WarehouseInfo, nRobots, robotCapacity
     vector<tuple<WarehouseInfo, int, int>> params{
-        {info, 11, 4},
-        {info, 5, 10},
-        {info, 30, 2},
+        {info_small, 10, 4},
+        {info_medium, 40, 4},
+        {info_small, 100, 7},
     };
 
     // TODO Run with many more generations and bigger population size
@@ -136,7 +150,7 @@ int main() {
     
     auto cws = run(cwsr, cw::cw(), params, seeds);
     auto greedys = run(greedyr, greedy::greedy(), params, seeds);
-    auto tabu = run(tabur, T, params, seeds);
+    //auto tabu = run(tabur, T, params, seeds);
     auto ga = run(gar, G, params, seeds);
 
     int accCWS = 0;
