@@ -30,6 +30,10 @@ int nextGroupId() {
     return groupId++;
 }
 
+void resetGroupId() {
+    groupId = 0;
+}
+
 class ResultHandler {
     string name;
     ofstream resultFile;
@@ -102,6 +106,7 @@ vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, in
 template<typename T>
 vector<int> run(ResultHandler &resultHandler, T t, const vector<tuple<WarehouseInfo, int, int>> &runParam, vector<long>& seeds) {
     // Will run each runParam seeds.length times
+    resetGroupId();
     vector<int> results;
     for(auto param : runParam) {
         auto paramResults = run(resultHandler, t, get<0>(param), get<1>(param), get<2>(param), seeds);
@@ -140,16 +145,16 @@ int main() {
     vector<tuple<WarehouseInfo, int, int>> params{
         {info_small, 5, 4},
         {info_medium, 20, 4},
-        //{info_large, 50, 7},
+        {info_large, 50, 7},
     };
 
     // TODO Run with many more generations and bigger population size
     auto G = ga::Ga(200, 400, 1.0, 0.0001);
     auto T = tabu::Tabu();
-    ResultHandler cwsr("results", "cws-2");
-    ResultHandler greedyr("results", "greedy-2");
-    ResultHandler gar("results", "ga-2");
-    ResultHandler tabur("results", "tabu-2");
+    ResultHandler cwsr("results", "cws");
+    ResultHandler greedyr("results", "greedy");
+    ResultHandler gar("results", "ga");
+    ResultHandler tabur("results", "tabu");
 
     auto seeds = generateSeeds(20);
     
