@@ -22,7 +22,7 @@ void inlineCoutVec(const vector<int>& vec) {
     cerr << "}";
 }
 
-int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& batches, int nRobots, int robotCapacity) {
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& batches, size_t nRobots, size_t robotCapacity) {
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
 
@@ -33,7 +33,7 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& batches
 
     for(int i = 0; i < nBatches; i++) {
         int from = i * robotCapacity;
-        int to = std::min((i + 1) * robotCapacity, (int)batches.size());
+        int to = std::min((i + 1) * robotCapacity, batches.size());
         int tseq = warehouse.getTimeForSequence(batches, from, to);
         if(nRobots > earliestRobots.size()) {
             earliestRobots.insert(tseq);
@@ -51,13 +51,13 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& batches
     return *latestRobots.begin();
 }
 
-int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>& batches, int nRobots, int robotCapacity) {
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>& batches, size_t nRobots, size_t robotCapacity) {
     vector<int> takenPackages(warehouse.getPackageLocations().size(), 0);
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
     bool invalid = false;
 
-    for(int i = 0; i < batches.size(); i++) {
+    for(size_t i = 0; i < batches.size(); i++) {
         if(batches[i].size() == 0) {
             continue; // No items for this robot :'(
         }
@@ -78,12 +78,12 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>&
             earliestRobots.insert(tseq + earliest);
             latestRobots.insert(tseq + earliest);
         }
-        for(int j : batches[i]) {
+        for(auto j : batches[i]) {
             takenPackages[j]++;
         }
     }
 
-    for(int i = 0; i < takenPackages.size(); i++) {
+    for(size_t i = 0; i < takenPackages.size(); i++) {
         if(takenPackages[i] == 0) {
             cerr << "Package " << i << " was not taken" << endl;
             invalid = true;
@@ -101,13 +101,13 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>&
     return *latestRobots.begin();
 }
 
-vector<int> getRobotTravelTimes(const Warehouse& warehouse, const vector<vector<int>>& batches, int nRobots, int robotCapacity) {
+vector<int> getRobotTravelTimes(const Warehouse& warehouse, const vector<vector<int>>& batches, size_t nRobots, size_t robotCapacity) {
     vector<int> takenPackages(warehouse.getPackageLocations().size(), 0);
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
     bool invalid = false;
 
-    for(int i = 0; i < batches.size(); i++) {
+    for(size_t i = 0; i < batches.size(); i++) {
         if(batches[i].size() == 0) {
             continue; // No items for this robot :'(
         }
@@ -128,12 +128,12 @@ vector<int> getRobotTravelTimes(const Warehouse& warehouse, const vector<vector<
             earliestRobots.insert(tseq + earliest);
             latestRobots.insert(tseq + earliest);
         }
-        for(int j : batches[i]) {
+        for(size_t j : batches[i]) {
             takenPackages[j]++;
         }
     }
 
-    for(int i = 0; i < takenPackages.size(); i++) {
+    for(size_t i = 0; i < takenPackages.size(); i++) {
         if(takenPackages[i] == 0) {
             cerr << "Package " << i << " was not taken" << endl;
             invalid = true;
@@ -158,7 +158,6 @@ Warehouse generateRandomWarehouse(WarehouseInfo info, long seed) {
     }
     // First calculate the x positions for every shelf
     info.aisleWidth += 2; // The shelves take up 2 spots as well
-    int nShelves = info.aisles*2;
     vector<int> shelfX(info.aisles*2);
     for(int i = 0; i < info.aisles; i++) {
         shelfX[2*i] = i * info.aisleWidth;
@@ -214,7 +213,7 @@ Warehouse::Warehouse(vector<vector<bool>> walkable, vector<Position> packageLoca
     auto fromdrop = calcPathLengthFrom(drop);
     auto fromstart = calcPathLengthFrom(start);
     this->pathLengthBetween = vector<vector<int>>(packageLocations.size() + 2, vector<int>(packageLocations.size() + 2));
-    for(int i = 0; i < packageLocations.size(); i++) {
+    for(size_t i = 0; i < packageLocations.size(); i++) {
         pathLengthBetween[i].resize(packageLocations.size() + 2);
         pathLengthBetween[1][i+2] = fromdrop[packageLocations[i].first][packageLocations[i].second];
         pathLengthBetween[0][i+2] = fromstart[packageLocations[i].first][packageLocations[i].second];
@@ -223,7 +222,7 @@ Warehouse::Warehouse(vector<vector<bool>> walkable, vector<Position> packageLoca
         pathLengthBetween[i+2][0] = fromstart[packageLocations[i].first][packageLocations[i].second];
         pathLengthBetween[i+2][1] = fromdrop[packageLocations[i].first][packageLocations[i].second];
         
-        for(int j = 0; j < packageLocations.size(); j++) {
+        for(size_t j = 0; j < packageLocations.size(); j++) {
             pathLengthBetween[i+2][j+2] = fromPackage[packageLocations[j].first][packageLocations[j].second];
         }
     }
@@ -304,7 +303,7 @@ int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) c
         return 0;
     }
     int end = findFirstNonNegOneBackward(idxSeq, to - 1, from);
-    if(start > end || start >= idxSeq.size() || end >= idxSeq.size()) {
+    if(start > end || start >= (int)idxSeq.size() || end >= (int)idxSeq.size()) {
         // This is an invalid sequence
         cerr << "FROM: " << from << ", TO: " << to << ", START: " << start << ", END: " << end << endl;
         throw runtime_error("Tried to get time for sequence " + std::to_string(start) + string(" to ") + std::to_string(end) + string(" which is an invalid sequence"));
@@ -349,8 +348,8 @@ const vector<Position>& Warehouse::getPackageLocations() const {
 
 string Warehouse::to_string() {
     string ret;
-    for(int y = 0; y < walkable.size(); y++) {
-        for(int x = 0; x < walkable[y].size(); x++) {
+    for(size_t y = 0; y < walkable.size(); y++) {
+        for(size_t x = 0; x < walkable[y].size(); x++) {
             auto walk= walkable[y][x];
             if(find(packageLocations.begin(), packageLocations.end(), Position(y,x)) != packageLocations.end()) {
                 ret += '2';

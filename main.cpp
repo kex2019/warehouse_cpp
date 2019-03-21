@@ -25,6 +25,10 @@ int resultId = 0;
 int nextId() {
     return resultId++;
 }
+int groupId = 0;
+int nextGroupId() {
+    return groupId++;
+}
 
 class ResultHandler {
     string name;
@@ -51,13 +55,13 @@ public:
         resultFile.close();
         robotResultFile.close();
     }
-    void appendResult(int result, int nRobots, int robotCapacity, int nPackages, int seed, long millis, const vector<int> &robotTravelTimes) {
+    void appendResult(int group, int result, int nRobots, int robotCapacity, int nPackages, int seed, long millis, const vector<int> &robotTravelTimes) {
         int id = nextId();
-        resultFile << id << "," << result << "," << robotTravelTimes.size() << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
+        resultFile << id << "," << group << "," << result << "," << robotTravelTimes.size() << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
         resultFile.flush();
         // Print the stats for every robot
-        robotResultFile << id << "," << robotTravelTimes.size() << ",";
-        for(int i = 0; i < robotTravelTimes.size(); i++) {
+        robotResultFile << id << "," << group << "," << robotTravelTimes.size() << ",";
+        for(size_t i = 0; i < robotTravelTimes.size(); i++) {
             robotResultFile << robotTravelTimes[i];
             if(i != robotTravelTimes.size() - 1) {
                 robotResultFile << ",";
@@ -75,7 +79,8 @@ template<typename T>
 vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, int nRobots, int robotCapacity, const vector<long>& seeds) {
     vector<int> results(seeds.size());
     cout << "Running: " << resultHandler.getName() << endl;
-    for(int i = 0; i < seeds.size(); i++) {
+    int group = nextGroupId();
+    for(size_t i = 0; i < seeds.size(); i++) {
         cout << "Completed " << (i * 100) / seeds.size() <<'%' <<  "            \r";
         cout.flush();
 
@@ -87,7 +92,7 @@ vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, in
         clock_t end = clock();
         double elapsedMs = double(end - begin) * 1000.0 / CLOCKS_PER_SEC;
         auto travelTimes = getRobotTravelTimes(warehouse, batches, nRobots, robotCapacity);
-        resultHandler.appendResult(solTime, nRobots, robotCapacity, info.packages, (int)seeds[i], (long)elapsedMs, travelTimes);
+        resultHandler.appendResult(group, solTime, nRobots, robotCapacity, info.packages, (int)seeds[i], (long)elapsedMs, travelTimes);
     }
 
     cout << "Completed 100" << '%' << endl;
@@ -141,21 +146,21 @@ int main() {
     // TODO Run with many more generations and bigger population size
     auto G = ga::Ga(200, 400, 1.0, 0.0001);
     auto T = tabu::Tabu();
-    ResultHandler cwsr("results", "cws");
-    ResultHandler greedyr("results", "greedy");
-    ResultHandler gar("results", "ga");
-    ResultHandler tabur("results", "tabu");
+    ResultHandler cwsr("results", "cws-2");
+    ResultHandler greedyr("results", "greedy-2");
+    ResultHandler gar("results", "ga-2");
+    ResultHandler tabur("results", "tabu-2");
 
     auto seeds = generateSeeds(20);
     
     auto cws = run(cwsr, cw::cw(), params, seeds);
-    //auto greedys = run(greedyr, greedy::greedy(), params, seeds);
-    //auto tabu = run(tabur, T, params, seeds);
+    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
+    auto tabu = run(tabur, T, params, seeds);
     auto ga = run(gar, G, params, seeds);
-
+/*
     int accCWS = 0;
     int accGreedys = 0;
-  /*  for(int i = 0; i < seeds.size(); i++) {
+    for(int i = 0; i < seeds.size(); i++) {
         accCWS += cws[i];
         accGreedys += greedys[i];
     }

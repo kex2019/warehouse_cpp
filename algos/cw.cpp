@@ -1,23 +1,24 @@
 #include "cw.h"
 #include <iostream>
-vector<vector<int>> cw::cw::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
+vector<vector<int>> cw::cw::solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse) {
     auto &orderLocations = warehouse.getPackageLocations();
     vector<int> orderIdxs(orderLocations.size());
     vector<int> orderCost(orderLocations.size());
-    for(int i = 0; i < orderIdxs.size(); i++) {
+    for(size_t i = 0; i < orderIdxs.size(); i++) {
         orderIdxs[i] = i;
-        orderCost[i] = warehouse.getTimeForSequence({i});
+        orderCost[i] = warehouse.getTimeForSequence({static_cast<int>(i)});
     }
     vector<pair<int,int>> orderPairs;
     vector<int> pairCost;
     vector<bool> usedOrders(orderCost.size(), false);
-    int nUsed = 0;
-
-    for(int i = 0; i < orderCost.size(); i++) {
-        for(int j = 0; j < orderCost.size(); j++) {
+    
+    for(size_t i = 0; i < orderCost.size(); i++) {
+        for(size_t j = 0; j < orderCost.size(); j++) {
             if(i != j) {
-                orderPairs.push_back({i,j});
-                pairCost.push_back(warehouse.getTimeForSequence({i,j}));
+                int idx = static_cast<int>(i);
+                int jdx = static_cast<int>(j);
+                orderPairs.push_back({idx,jdx});
+                pairCost.push_back(warehouse.getTimeForSequence({idx,jdx}));
             }
         }
     }
@@ -28,7 +29,7 @@ vector<vector<int>> cw::cw::solve(int nRobots, int robotCapacity, const Warehous
     int maxSavingsIdx = 0;
     int maxSavings = 0;
     int maxSingleCost = 0;
-    for(int i = 0; i < pairCost.size(); i++) {
+    for(size_t i = 0; i < pairCost.size(); i++) {
         int savings = orderCost[orderPairs[i].first] + orderCost[orderPairs[i].second] - pairCost[i];
         if(savings > maxSavings) {
             maxSavings = savings;
@@ -39,7 +40,7 @@ vector<vector<int>> cw::cw::solve(int nRobots, int robotCapacity, const Warehous
 
     C = {orderPairs[maxSavingsIdx].first, orderPairs[maxSavingsIdx].second};
     int CSingleCost = maxSingleCost;
-    nUsed = 2;
+    size_t nUsed = 2;
     usedOrders[orderPairs[maxSavingsIdx].first] = true;
     usedOrders[orderPairs[maxSavingsIdx].second] = true;    
     while(nUsed < orderCost.size()) {
@@ -47,7 +48,7 @@ vector<vector<int>> cw::cw::solve(int nRobots, int robotCapacity, const Warehous
         maxSavings = -1;
         if(C.size() < robotCapacity) {
             //Find order with maximum savings for this
-            for(int i = 0; i < orderCost.size(); i++) {
+            for(size_t i = 0; i < orderCost.size(); i++) {
                 if(!usedOrders[i]) {
                     vector<int> CC(C); // Copy C
                     CC.push_back(i);
@@ -77,7 +78,7 @@ vector<vector<int>> cw::cw::solve(int nRobots, int robotCapacity, const Warehous
             int maxSavingsIdx = -1;
             int maxSavings = -1;
             int maxSingleCost = -1;
-            for(int i = 0; i < pairCost.size(); i++) {
+            for(size_t i = 0; i < pairCost.size(); i++) {
                 if(usedOrders[orderPairs[i].first] || usedOrders[orderPairs[i].second]) {
                     continue; // Don't use an order twice...
                 }
@@ -94,7 +95,7 @@ vector<vector<int>> cw::cw::solve(int nRobots, int robotCapacity, const Warehous
                 break; // We can't find any more batches
             }
             C = {orderPairs[maxSavingsIdx].first, orderPairs[maxSavingsIdx].second};
-            int CSingleCost = maxSingleCost;
+            CSingleCost = maxSingleCost;
             usedOrders[orderPairs[maxSavingsIdx].first] = true;
             usedOrders[orderPairs[maxSavingsIdx].second] = true;
             nUsed+=2;
@@ -106,10 +107,10 @@ vector<vector<int>> cw::cw::solve(int nRobots, int robotCapacity, const Warehous
         batches.push_back(C);
     }
 
-    for(int i = 0; i < usedOrders.size(); i++) {
+    for(size_t i = 0; i < usedOrders.size(); i++) {
         if(!usedOrders[i]) {
             cout << "Order " << i << " was not put into a batch" << endl;
-            batches.push_back({i});
+            batches.push_back({static_cast<int>(i)});
         }
     }
 
