@@ -299,7 +299,17 @@ int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) c
     }
 
     int start = findFirstNonNegOneForward(idxSeq, from, to);
+    if(start == to) {
+        // This means that the entire sequence doesn't contain any orders
+        return 0;
+    }
     int end = findFirstNonNegOneBackward(idxSeq, to - 1, from);
+    if(start > end || start >= idxSeq.size() || end >= idxSeq.size()) {
+        // This is an invalid sequence
+        cerr << "FROM: " << from << ", TO: " << to << ", START: " << start << ", END: " << end << endl;
+        throw runtime_error("Tried to get time for sequence " + std::to_string(start) + string(" to ") + std::to_string(end) + string(" which is an invalid sequence"));
+    }
+
     int timeFromStart = pathLengthBetween[0][idxSeq[start] + 2];
     int timeToEnd = pathLengthBetween[idxSeq[end] + 2][1];
     int totalTime = 0;

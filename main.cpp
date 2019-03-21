@@ -94,14 +94,17 @@ vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, in
     return results;
 }
 
-/*typedef tuple<WarehouseInfo
-
-
 template<typename T>
-vector<int> run(ResultHandler &resultHandler, T t) {
-
+vector<int> run(ResultHandler &resultHandler, T t, const vector<tuple<WarehouseInfo, int, int>> &runParam, vector<long>& seeds) {
+    // Will run each runParam seeds.length times
+    vector<int> results;
+    for(auto param : runParam) {
+        auto paramResults = run(resultHandler, t, get<0>(param), get<1>(param), get<2>(param), seeds);
+        results.insert(results.end(), paramResults.begin(), paramResults.end());
+    }
+    return results;
 }
-*/
+
 int main() {
     WarehouseInfo info;
     info.aisles = 8;
@@ -114,6 +117,13 @@ int main() {
     int capacity = 4;
     int numberRobots = 10;
 
+    // WarehouseInfo, nRobots, robotCapacity
+    vector<tuple<WarehouseInfo, int, int>> params{
+        {info, 11, 4},
+        {info, 5, 10},
+        {info, 30, 2},
+    };
+
     // TODO Run with many more generations and bigger population size
     auto G = ga::Ga(20, 10, 1.0, 0.0001);
     auto T = tabu::Tabu();
@@ -124,10 +134,10 @@ int main() {
 
     auto seeds = generateSeeds(20);
     
-    auto cws = run(cwsr, cw::cw(), info, numberRobots, capacity, seeds);
-    auto greedys = run(greedyr, greedy::greedy(), info, numberRobots, capacity, seeds);
-    //auto tabu = run(tabur, T, info, numberRobots, capacity, seeds);
-    auto ga = run(gar, G, info, numberRobots, capacity, seeds);
+    auto cws = run(cwsr, cw::cw(), params, seeds);
+    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
+    auto tabu = run(tabur, T, params, seeds);
+    auto ga = run(gar, G, params, seeds);
 
     int accCWS = 0;
     int accGreedys = 0;
