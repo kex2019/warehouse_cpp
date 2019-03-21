@@ -26,6 +26,7 @@ vector<vector<int>> greedy::greedy::solve(int nRobots, int robotCapacity, const 
         batch.push_back(minIdx);
         do {
             minIdx = findClosest(lengths, used, batch.back());
+            // TODO: DEBUG You fail...
             if(minIdx == -1) {
                 cerr << "Could not find minimum" << endl;
                 throw runtime_error("Could not find minimum");

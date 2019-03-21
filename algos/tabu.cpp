@@ -108,47 +108,51 @@ bool tabu::nshiftgenerator::eof() {
     return isEof;
 }
 
-vector<vector<int>> tabu::nshiftgenerator::next() {
+
+pair<vector<vector<int>>, bool> tabu::nshiftgenerator::next() {
     if (isEof) {
         throw runtime_error("Tried to get next when nshiftgenerator has reached eof");
     }
 
+    int i = 0;
+    int _max = 10000;
     while(true) {
-        if(isEof) {
-            return solution;
-        }
-        // TODO: Implement
-        if(currentOrder >= solution[currentFirst].size()) {
-            currentOrder = 0;
-            currentSecond++;
-        }
-        if(currentSecond == currentFirst) {
-            currentSecond++;
-        }
-        if(currentSecond >= solution.size()) {
-            currentFirst++;
-            currentSecond = 0;
-            currentOrder = 0;
+        i++;
+        if(i >= _max) {
+            break;
         }
 
-        if(currentFirst == solution.size()) {
-            isEof = true;
-            return solution;
-        }
-
-        if(solution[currentSecond].size() >= robotCapacity) {
-            // Can't add more orders here
+        currentFirst = rand() % solution.size();
+        currentSecond = rand() % nRobots;
+        if(currentFirst >= solution.size() || solution[currentFirst].size() == 0 || (currentSecond < solution.size() && solution[currentSecond].size() >= robotCapacity)) {
             continue;
         }
 
-        if(tabus.isTabu(this->getMove())) {
+        currentOrder = rand() % solution[currentFirst].size();
+        auto move = getMove();
+        if(checked.find(move) != checked.end()) {
+            // Do something else that's actually smart here...
             continue;
         }
 
+        if(tabus.isTabu(move)) {
+            // Move is tabu :'(
+            checked.insert(move); // Might not want to do this, maybe is enough to have it in tabu list
+            //cout << "Move is tabu" << endl;
+            continue;
+        }
+
+        // We can do this move :o 
         vector<vector<int>> sol(solution);
-        sol[currentSecond].push_back(solution[currentFirst][currentOrder]);
-        return sol;
+        while(sol.size() <= currentSecond) {
+            sol.push_back({});
+        }
+        sol[currentSecond].push_back(sol[currentFirst][currentOrder]);
+        sol[currentFirst].erase(sol[currentFirst].begin() + currentOrder);
+        return {sol, true};
     }
+
+    return {{}, false};
 }
 
 vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
@@ -159,9 +163,10 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
     vector<vector<int>> bestSolution = solution;
     int bestSolutionScore = evaluateSolutionTime(warehouse, bestSolution, nRobots, robotCapacity);
     int t = 0;
+    int maxN = 5 * nOrders;
 
-    nswapgenerator gen(lifeTime, robotCapacity, solution);
-
+    nshiftgenerator gen(lifeTime, nRobots, robotCapacity, solution);
+    cout << endl;
     while(true) {
         t++;
         if(t >= 10000) {
@@ -178,15 +183,24 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
         int nSinceSwitch = 0;
 
         bool foundBetter = false;
-        int nmovesCheck = 0;
+        int tt = 0;
         while(!gen.eof()) {
+            tt++;
             if(switched && nSinceSwitch > nOrders) {
                 break; // Checked enough since we found a better one.
             }
-            nmovesCheck++;
+            if(tt > maxN) {
+                break; // Checked to many
+            }
+
 
             // Get next move to check
-            auto next = gen.next();
+            auto nexts = gen.next();
+            if(!nexts.second) {
+                return bestSolution;
+            }
+
+            auto next = nexts.first;
             // Check it's not on tabu
             auto move = gen.getMove(); // Automagically checks the move is valid
             if(gen.eof()) {
@@ -226,6 +240,5 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
         solution = nextBestSolution;
     }
 
-//    cout << "FOUND: " << bestSolutionScore << endl;
     return bestSolution;
 }
