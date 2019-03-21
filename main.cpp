@@ -107,39 +107,39 @@ vector<int> run(ResultHandler &resultHandler, T t, const vector<tuple<WarehouseI
 
 int main() {
     WarehouseInfo info_small;
-    info_small.aisles = 4;
+    info_small.aisles = 2;
     info_small.aisleWidth = 2;
     info_small.crossAiles = 2;
     info_small.crossAilesWidth = 2;
     info_small.shelfHeight = 10;
-    info_small.packages = 40;
+    info_small.packages = 20;
 
     WarehouseInfo info_medium;
-    info_medium.aisles = 20;
+    info_medium.aisles = 8;
     info_medium.aisleWidth = 3;
     info_medium.crossAiles = 3;
     info_medium.crossAilesWidth = 3;
     info_medium.shelfHeight = 20;
-    info_medium.packages = 160;
+    info_medium.packages = 80;
 
 
     WarehouseInfo info_large;
-    info_medium.aisles = 40;
-    info_medium.aisleWidth = 4;
-    info_medium.crossAiles = 4;
-    info_medium.crossAilesWidth = 4;
-    info_medium.shelfHeight = 30;
-    info_medium.packages = 640;
+    info_large.aisles = 32;
+    info_large.aisleWidth = 4;
+    info_large.crossAiles = 4;
+    info_large.crossAilesWidth = 4;
+    info_large.shelfHeight = 30;
+    info_large.packages = 320;
 
     // WarehouseInfo, nRobots, robotCapacity
     vector<tuple<WarehouseInfo, int, int>> params{
-        {info_small, 10, 4},
-        {info_medium, 40, 4},
-        {info_small, 100, 7},
+        {info_small, 5, 4},
+        {info_medium, 20, 4},
+        {info_large, 50, 7},
     };
 
     // TODO Run with many more generations and bigger population size
-    auto G = ga::Ga(20, 10, 1.0, 0.0001);
+    auto G = ga::Ga(200, 400, 1.0, 0.0001);
     auto T = tabu::Tabu();
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
@@ -149,7 +149,7 @@ int main() {
     auto seeds = generateSeeds(20);
     
     auto cws = run(cwsr, cw::cw(), params, seeds);
-    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
+    //auto greedys = run(greedyr, greedy::greedy(), params, seeds);
     //auto tabu = run(tabur, T, params, seeds);
     auto ga = run(gar, G, params, seeds);
 
