@@ -14,7 +14,7 @@ int findClosest(const vector<vector<int>> & lens, vector<bool> used, int from) {
 
 vector<vector<int>> greedy::greedy::solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse) {
     size_t nTaken = 0;
-    vector<vector<int>> batches; 
+    vector<vector<int>> batches;
     vector<bool> used(warehouse.getPackageLocations().size(), false);
     auto &lengths = warehouse.getPathLengths();
     while(nTaken < warehouse.getPackageLocations().size()) {

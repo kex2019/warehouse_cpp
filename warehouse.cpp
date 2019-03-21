@@ -134,7 +134,7 @@ vector<int> getRobotTravelTimes(const Warehouse& warehouse, const vector<vector<
     }
 
     for(size_t i = 0; i < takenPackages.size(); i++) {
-        if(takenPackages[i] == 0) {
+        if(takenPackages.at(i) == 0) {
             cerr << "Package " << i << " was not taken" << endl;
             invalid = true;
         }

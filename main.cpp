@@ -140,7 +140,7 @@ int main() {
     vector<tuple<WarehouseInfo, int, int>> params{
         {info_small, 5, 4},
         {info_medium, 20, 4},
-        {info_large, 50, 7},
+        //{info_large, 50, 7},
     };
 
     // TODO Run with many more generations and bigger population size
