@@ -39,13 +39,14 @@ namespace tabu {
         int currentFirstOrder = 0;
         int currentSecondOrder = 0;
         int robotCapacity = 0;
+        int nRobots = 0;
         bool isEof = false;
         TabuList<tuple<int,int,int,int>> tabus;
         tuple<int,int,int,int> bestMove;
 
     public:
         vector<vector<int>> solution;
-        nswapgenerator(int lifeTime, int robotCapacity, const vector<vector<int>> &solution) : solution(solution), tabus(lifeTime){}
+        nswapgenerator(int lifeTime, int nRobots, int robotCapacity, const vector<vector<int>> &solution) : solution(solution), nRobots(nRobots), robotCapacity(robotCapacity), tabus(lifeTime){}
         vector<vector<int>> next();
         bool eof();
         tuple<int,int,int,int> getBestMove();
@@ -68,15 +69,17 @@ namespace tabu {
     class nshiftgenerator {
         int currentFirst = 0;
         int currentSecond = 0;
-        int currentOrder = 0;
+        int currentOrder = -1;
+        int nRobots = 0;
         bool isEof = false;
         int robotCapacity = 0;
         TabuList<tuple<int,int,int>> tabus;
         tuple<int,int,int> bestMove;
+        set<tuple<int,int,int>> checked;
     public:
         vector<vector<int>> solution;
-        nshiftgenerator(int lifeTime, int robotCapacity, const vector<vector<int>> &solution) : solution(solution), tabus(lifeTime){}
-        vector<vector<int>> next();
+        nshiftgenerator(int lifeTime, int nRobots, int robotCapacity, const vector<vector<int>> &solution) : solution(solution), nRobots(nRobots), robotCapacity(robotCapacity), tabus(lifeTime){}
+        pair<vector<vector<int>>, bool> next();
         void doBestMove(int t);
         bool eof();
         tuple<int,int,int> getBestMove();
@@ -86,8 +89,9 @@ namespace tabu {
             this->solution = solution;
             currentFirst = 0;
             currentSecond = 0;
-            currentOrder = 0;
+            currentOrder = -1;
             isEof = false;
+            checked.clear();
         }
         void setBestMove() {
             bestMove = {currentFirst, currentSecond, currentOrder};
