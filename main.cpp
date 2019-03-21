@@ -111,45 +111,63 @@ vector<int> run(ResultHandler &resultHandler, T t, const vector<tuple<WarehouseI
 }
 
 int main() {
-    WarehouseInfo info_small;
-    info_small.aisles = 2;
-    info_small.aisleWidth = 2;
-    info_small.crossAiles = 2;
-    info_small.crossAilesWidth = 2;
-    info_small.shelfHeight = 10;
-    info_small.packages = 20;
+    WarehouseInfo info_xs;
+    info_xs.aisles = 2;
+    info_xs.aisleWidth = 2;
+    info_xs.crossAiles = 2;
+    info_xs.crossAilesWidth = 2;
+    info_xs.shelfHeight = 10;
+    info_xs.packages = 20;
 
-    WarehouseInfo info_medium;
-    info_medium.aisles = 8;
-    info_medium.aisleWidth = 3;
-    info_medium.crossAiles = 3;
-    info_medium.crossAilesWidth = 3;
-    info_medium.shelfHeight = 20;
-    info_medium.packages = 80;
+    WarehouseInfo info_s;
+    info_s.aisles = 4;
+    info_s.aisleWidth = 2;
+    info_s.crossAiles = 2;
+    info_s.crossAilesWidth = 2;
+    info_s.shelfHeight = 20;
+    info_s.packages = 40;
+
+    WarehouseInfo info_m;
+    info_m.aisles = 6;
+    info_m.aisleWidth = 2;
+    info_m.crossAiles = 2;
+    info_m.crossAilesWidth = 2;
+    info_m.shelfHeight = 20;
+    info_m.packages = 80;
+
+    WarehouseInfo info_l;
+    info_l.aisles = 8;
+    info_l.aisleWidth = 3;
+    info_l.crossAiles = 3;
+    info_l.crossAilesWidth = 3;
+    info_l.shelfHeight = 20;
+    info_l.packages = 160;
 
 
-    WarehouseInfo info_large;
-    info_large.aisles = 32;
-    info_large.aisleWidth = 4;
-    info_large.crossAiles = 4;
-    info_large.crossAilesWidth = 4;
-    info_large.shelfHeight = 30;
-    info_large.packages = 320;
+    WarehouseInfo info_xl;
+    info_xl.aisles = 10;
+    info_xl.aisleWidth = 2;
+    info_xl.crossAiles = 2;
+    info_xl.crossAilesWidth = 2;
+    info_xl.shelfHeight = 20;
+    info_xl.packages = 320;
 
     // WarehouseInfo, nRobots, robotCapacity
     vector<tuple<WarehouseInfo, int, int>> params{
-        {info_small, 5, 4},
-        {info_medium, 20, 4},
-        //{info_large, 50, 7},
+        {info_xs, 4, 5},
+        {info_s, 8, 5},
+        {info_m, 16, 5},
+        {info_l, 32, 5},
+        {info_xl, 64, 5},
     };
 
     // TODO Run with many more generations and bigger population size
-    auto G = ga::Ga(200, 400, 1.0, 0.0001);
+    auto G = ga::Ga(200, 800, 1.0, 0.0001);
     auto T = tabu::Tabu();
-    ResultHandler cwsr("results", "cws-2");
-    ResultHandler greedyr("results", "greedy-2");
-    ResultHandler gar("results", "ga-2");
-    ResultHandler tabur("results", "tabu-2");
+    ResultHandler cwsr("results", "cws");
+    ResultHandler greedyr("results", "greedy");
+    ResultHandler gar("results", "ga");
+    ResultHandler tabur("results", "tabu");
 
     auto seeds = generateSeeds(20);
     
