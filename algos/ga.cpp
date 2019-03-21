@@ -101,13 +101,13 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
     this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
 
 
-    int keepN = max(1, int(selectA*pow(selectB, g) * this->generations));
+    int keepN = max(1, int(selectA*pow(selectB, g) * this->population));
 
     vector<int> elitists = this->select(fitnesses, keepN);
 
     this->crossover(chromosomes, elitists);
 
-    int mutateN = max(1, int(mutateA*pow(mutateB, g) * this->generations));
+    int mutateN = max(1, int(mutateA*pow(mutateB, g) * this->population));
     this->mutate(chromosomes, fitnesses, mutateN);
   }
 
@@ -209,6 +209,7 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
       // Select two elitists & combine them and replace the chromosome at position i with that chromosome
       int e1 = elitists[this->rng() % elitists.size()];
       int e2 = elitists[this->rng() % elitists.size()];
+
       // Partition indexes
       int p1 = min((int)(this->rng() % this->chromosomeSize) + 2, (int)(chromosomeSize - 1));
       int p2 = this->rng() % (p1 - 1);
@@ -256,6 +257,7 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
           missingOrders.erase(missingOrders.begin());
         }
       }
+
 
       // Remove all duplicates
       for (size_t j = 0; j < this->chromosomeSize; j++) {
