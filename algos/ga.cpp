@@ -105,7 +105,6 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
 
   //double selectA
 
-  int lastImprovement = 1;
   for (size_t g = 0; g < this->generations; g++) {
     this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
 
