@@ -175,17 +175,17 @@ int main() {
 
     // WarehouseInfo, nRobots, robotCapacity
     vector<tuple<WarehouseInfo, int, int>> params{
-        {info_xs, 4, 5},
-        {info_s, 8, 5},
-        {info_m, 16, 5},
-        {info_l, 32, 5},
-        {info_xl, 64, 5},
-        {info_xxl, 128, 5},
+        //{info_xs, 4, 5},
+        //{info_s, 8, 5},
+        //{info_m, 16, 5},
+        //{info_l, 32, 5},
+        //{info_xl, 64, 5},
+        //{info_xxl, 128, 5},
         {info_xxxl, 100, 8},
     };
 
     // TODO Run with many more generations and bigger population size
-    auto G = ga::Ga(500, 1000, 1.0, 0.5);
+    auto G = ga::Ga(500, 1000, 1.0, 1.0);
     auto T = tabu::Tabu();
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
@@ -194,9 +194,9 @@ int main() {
 
     auto seeds = generateSeeds(20);
     
-    auto cws = run(cwsr, cw::cw(), params, seeds);
-    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
-    auto tabu = run(tabur, T, params, seeds);
+    //auto cws = run(cwsr, cw::cw(), params, seeds);
+    //auto greedys = run(greedyr, greedy::greedy(), params, seeds);
+    //auto tabu = run(tabur, T, params, seeds);
     auto ga = run(gar, G, params, seeds);
 /*
     int accCWS = 0;

@@ -33,7 +33,7 @@ namespace ga {
     void fitness(Chromosomes &chromosomes, vector<double> &fitnesses, int nRobots, int robotCapacity, const Warehouse &warehouse);
     vector<int> select(vector<double> &fitnesses, double keepN);
     void crossover(Chromosomes &chromosomes, vector<int> &elitists);
-    void mutate(Chromosomes &chromosomes, vector<double> &fitnesses, int mutations);
+    void mutate(Chromosomes &chromosomes, vector<double> &fitnesses);
 
     Ga(size_t population, 
         size_t generations, 

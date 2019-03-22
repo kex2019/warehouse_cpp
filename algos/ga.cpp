@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include "greedy.h"
 
 // Or maybe: Adjacent Swaps on Strings
 // If we need linear, use Cayley distance? (eg. cycles in the permutation). compose c1 with the inverse of c2 and count the number of cycles
@@ -30,9 +31,22 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
   size_t orders = warehouse.getPackageLocations().size();
   vector<int> baseChromosome;
 
-  // Add orders to chromosome
-  for (size_t i = 0; i < orders; i++)
-    baseChromosome.push_back(static_cast<int>(i));
+  //// Add orders to chromosome
+  //for (size_t i = 0; i < orders; i++)
+    //baseChromosome.push_back(static_cast<int>(i));
+
+  greedy::greedy greedSolver = greedy::greedy{};
+  vector<vector<int>> greedySolution = greedSolver.solve(nRobots, robotCapacity, warehouse);
+  
+  for (auto V: greedySolution) {
+    for (auto v: V) {
+      baseChromosome.push_back(v);
+    }
+
+    for (int i = 0; i < robotCapacity - V.size(); i++) {
+      baseChromosome.push_back(-1);
+    }
+  }
 
   if (robotCapacity * nRobots < orders)
     throw runtime_error("Cannot plan when more orders than can be picked up.");
@@ -56,7 +70,7 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
 
   Chromosomes chromosomes;
   for (size_t i = 0; i < this->population; i++) {
-    shuffle(baseChromosome.begin(), baseChromosome.end(), default_random_engine(this->rng()));
+    //shuffle(baseChromosome.begin(), baseChromosome.end(), default_random_engine(this->rng()));
     chromosomes.push_back(baseChromosome);
   }
 
@@ -83,40 +97,27 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
   // b = e^(log(0.02) / (max - min))
   // a = 0.5/(b^min)
 
-  double selectStart = 0.5;
-  double selectEnd = 0.05;
-
-  double mutateStart = 1.0;
-  double mutateEnd = 0.1;
+  double selectStart = 0.1;
+  double selectEnd = 3.0 / this->population;
 
   double selectB = exp(log(selectEnd * 2) / (this->generations + 1e-6));
   double selectA = selectStart;
 
-  double mutateB = exp(log(mutateEnd * 2) / (this->generations + 1e-6));
-  double mutateA = mutateStart;
-
   //double selectA
 
+  int lastImprovement = 1;
   for (size_t g = 0; g < this->generations; g++) {
     this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
 
-    
-
-
-    int keepN = max(1, int(selectA*pow(selectB, g) * this->population));
+    int keepN = max(3, int(selectA*pow(selectB, g) * this->population));
 
     vector<int> elitists = this->select(fitnesses, keepN);
 
     this->crossover(chromosomes, elitists);
 
-    int mutateN = max(1, int(mutateA*pow(mutateB, g) * this->chromosomeSize));
-
-    //cout << this->apexPerformance << " " << "Keep " << keepN << " " << "Mutate " << mutateN << " " <<  this->chromosomeSize << " " << this->population <<"\n";
-    this->mutate(chromosomes, fitnesses, mutateN);
+    //cout << this->apexPerformance << " " << "Keep " << keepN << " " << this->population <<"\n";
+    this->mutate(chromosomes, fitnesses);
   }
-
-  cout << "\n\n";
-
 
   vector<vector<int>> solution;
   vector<int> batch;
@@ -164,6 +165,23 @@ void ga::Ga::fitness(Chromosomes &chromosomes,
     performanceMean += performance;
     differenceMean += swappingDistance;
   }
+
+  // Ranking
+  //sort(this->chromosomeIDs.begin(), this->chromosomeIDs.end(), [this](int i, int j) {
+      //return this->performances[i] < this->performances[j];
+      //});
+
+  //for (int i = 0; i < this->chromosomeIDs.size(); i++) {
+    //fitnesses[this->chromosomeIDs[i]] = this->alpha * i;
+  //}
+
+  //sort(this->chromosomeIDs.begin(), this->chromosomeIDs.end(), [this](int i, int j) {
+      //return this->differences[i] < this->differences[j];
+      //});
+
+  //for (int i = 0; i < this->chromosomeIDs.size(); i++) {
+    //fitnesses[this->chromosomeIDs[i]] += this->beta * i;
+  //}
 
   performanceMean /= double(chromosomes.size());
   differenceMean /= double(chromosomes.size());
@@ -216,8 +234,9 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
       int e1 = elitists[this->rng() % elitists.size()];
       int e2 = elitists[this->rng() % elitists.size()];
 
+
       // Partition indexes
-      int p1 = min((int)(this->rng() % this->chromosomeSize) + 2, (int)(chromosomeSize - 1));
+      int p1 = min((int)(this->rng() % this->chromosomeSize) + 5, (int)(chromosomeSize - 1));
       int p2 = this->rng() % (p1 - 1);
 
       // Combine the elitists into the new chromosome
@@ -272,54 +291,14 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
           chromosomes[i][j] = -1;
         }
       }
-
-      // Now mutate the chromosome
     }
   }
 }
 
-void ga::Ga::mutate(Chromosomes &chromosomes, vector<double> &fitnesses, int mutations) {
-
-  double maxFit = 0.0;
-  double minFit = 0.0;
-  for (size_t i = 0; i < fitnesses.size(); i++) {
-    maxFit = max(maxFit, fitnesses[i]);
-    minFit = min(minFit, fitnesses[i]);
-  }
-
-  // Have a offset because not sure if negative values is ok.
-  double offset = abs(min(0.0, minFit));
-
-  minFit += offset;
-  maxFit += offset;
-
-
-  // Fit f 
-  // f(min) = maxMut
-  // f(max) = minMut
-  // aB^x
-  // 
-  //Example
-  //
-  // ab^min = 0.5
-  // ab^max = 0.01
-  //
-  // a = 0.5/(b^min)
-  // b^max * 0.5/(b^min) = 0.01
-  // b^(max - min) * 0.5 = 0.01
-  // b^(max - min) = 0.02
-  // log(b^(max - min)) = (max - min)log(b)
-  // b = e^(log(0.02) / (max - min))
-  // a = 0.5/(b^min)
-
-  double minMut = 0.01;
-  double maxMut = 0.8;
-
-  double b = exp(log(minMut * 2) / (maxFit - minFit + 1e-6));
-  double a = maxMut / pow(b, minFit);
+void ga::Ga::mutate(Chromosomes &chromosomes, vector<double> &fitnesses) {
 
   for (size_t i = 0; i < chromosomes.size(); i++) {
-    int mutate = int(a*pow(b, fitnesses[i] + offset) * mutations);
+    int mutate = 1; //int(a*pow(b, fitnesses[i] + offset) * mutations);
     for (int j = 0; j < mutate; j++) {
       int i1 = this->rng() % this->chromosomeSize;
       int i2 = this->rng() % this->chromosomeSize;
