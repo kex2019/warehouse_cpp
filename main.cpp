@@ -165,6 +165,14 @@ int main() {
     info_xxl.shelfHeight = 20;
     info_xxl.packages = 640;
 
+    WarehouseInfo info_xxxl;
+    info_xxxl.aisles = 80;
+    info_xxxl.aisleWidth = 2;
+    info_xxxl.crossAiles = 2;
+    info_xxxl.crossAilesWidth = 2;
+    info_xxxl.shelfHeight = 20;
+    info_xxxl.packages = 800;
+
     // WarehouseInfo, nRobots, robotCapacity
     vector<tuple<WarehouseInfo, int, int>> params{
         {info_xs, 4, 5},
@@ -172,11 +180,12 @@ int main() {
         {info_m, 16, 5},
         {info_l, 32, 5},
         {info_xl, 64, 5},
-        {info_xxl, 128, 6},
+        {info_xxl, 128, 5},
+        {info_xxl, 100, 8},
     };
 
     // TODO Run with many more generations and bigger population size
-    auto G = ga::Ga(300, 1000, 1.0, 0.5);
+    auto G = ga::Ga(500, 1000, 1.0, 0.5);
     auto T = tabu::Tabu();
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");

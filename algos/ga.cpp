@@ -87,7 +87,7 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
   double selectEnd = 0.05;
 
   double mutateStart = 1.0;
-  double mutateEnd = 0.2;
+  double mutateEnd = 0.1;
 
   double selectB = exp(log(selectEnd * 2) / (this->generations + 1e-6));
   double selectA = selectStart;
@@ -100,6 +100,8 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
   for (size_t g = 0; g < this->generations; g++) {
     this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
 
+    
+
 
     int keepN = max(1, int(selectA*pow(selectB, g) * this->population));
 
@@ -107,9 +109,13 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
 
     this->crossover(chromosomes, elitists);
 
-    int mutateN = max(1, int(mutateA*pow(mutateB, g) * this->population));
+    int mutateN = max(1, int(mutateA*pow(mutateB, g) * this->chromosomeSize));
+
+    //cout << this->apexPerformance << " " << "Keep " << keepN << " " << "Mutate " << mutateN << " " <<  this->chromosomeSize << " " << this->population <<"\n";
     this->mutate(chromosomes, fitnesses, mutateN);
   }
+
+  cout << "\n\n";
 
 
   vector<vector<int>> solution;
