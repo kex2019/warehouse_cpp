@@ -133,7 +133,7 @@ int main() {
     info_s.packages = 40;
 
     WarehouseInfo info_m;
-    info_m.aisles = 6;
+    info_m.aisles = 8;
     info_m.aisleWidth = 2;
     info_m.crossAiles = 2;
     info_m.crossAilesWidth = 2;
@@ -141,7 +141,7 @@ int main() {
     info_m.packages = 80;
 
     WarehouseInfo info_l;
-    info_l.aisles = 8;
+    info_l.aisles = 16;
     info_l.aisleWidth = 3;
     info_l.crossAiles = 3;
     info_l.crossAilesWidth = 3;
@@ -150,12 +150,20 @@ int main() {
 
 
     WarehouseInfo info_xl;
-    info_xl.aisles = 10;
+    info_xl.aisles = 32;
     info_xl.aisleWidth = 2;
     info_xl.crossAiles = 2;
     info_xl.crossAilesWidth = 2;
     info_xl.shelfHeight = 20;
     info_xl.packages = 320;
+
+    WarehouseInfo info_xxl;
+    info_xxl.aisles = 64;
+    info_xxl.aisleWidth = 2;
+    info_xxl.crossAiles = 2;
+    info_xxl.crossAilesWidth = 2;
+    info_xxl.shelfHeight = 20;
+    info_xxl.packages = 640;
 
     // WarehouseInfo, nRobots, robotCapacity
     vector<tuple<WarehouseInfo, int, int>> params{
@@ -164,10 +172,11 @@ int main() {
         {info_m, 16, 5},
         {info_l, 32, 5},
         {info_xl, 64, 5},
+        {info_xxl, 128, 6},
     };
 
     // TODO Run with many more generations and bigger population size
-    auto G = ga::Ga(200, 800, 1.0, 0.0001);
+    auto G = ga::Ga(300, 1000, 1.0, 0.5);
     auto T = tabu::Tabu();
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
