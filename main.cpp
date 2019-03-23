@@ -178,10 +178,10 @@ int main() {
         {info_xs, 4, 5},
         {info_s, 8, 5},
         {info_m, 16, 5},
-        {info_l, 32, 5},
-        {info_xl, 64, 5},
-        {info_xxl, 128, 5},
-        {info_xxxl, 100, 8},
+        //{info_l, 32, 5},
+        //{info_xl, 64, 5},
+        //{info_xxl, 128, 5},
+        //{info_xxxl, 100, 8},
     };
 
     // TODO Run with many more generations and bigger population size

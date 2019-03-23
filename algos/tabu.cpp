@@ -2,14 +2,14 @@
 
 #include <iostream>
 
-vector<vector<int>> tabu::nswapgenerator::next() {
+pair<vector<vector<int>>, bool> tabu::nswapgenerator::next() {
     if (isEof) {
         throw runtime_error("Tried to get next when nswapgenerator has reached eof");
     }
 
     while(true) {
         if(isEof) {
-            return solution;
+            return {solution, false};
         }
 
         // Swap back to the initial state
@@ -34,7 +34,7 @@ vector<vector<int>> tabu::nswapgenerator::next() {
         }
         if(currentFirst >= solution.size()) {
             isEof = true;
-            return solution; // Return initial solution
+            return {solution, false}; // Return initial solution
         }
 
 
@@ -54,7 +54,7 @@ vector<vector<int>> tabu::nswapgenerator::next() {
             continue; // Keep going...
         }
 
-        return solution;
+        return {solution, true};
     }
 }
 
@@ -123,8 +123,22 @@ pair<vector<vector<int>>, bool> tabu::nshiftgenerator::next() {
         }
 
         currentFirst = rand() % solution.size();
-        currentSecond = rand() % nRobots;
-        if(currentFirst >= solution.size() || solution[currentFirst].size() == 0 || (currentSecond < solution.size() && solution[currentSecond].size() >= robotCapacity)) {
+        vector<int> possibleSeconds;
+        for(size_t i = 0; i < nRobots; i++) {
+            if(i < solution.size() && solution[i].size() < robotCapacity) {
+                possibleSeconds.push_back(i);
+            } else if (i >= solution.size()){
+                possibleSeconds.push_back(i);
+            }
+        }
+
+        if(possibleSeconds.size() == 0) {
+            isEof = true;
+            return {solution, false};
+        }
+
+        currentSecond = possibleSeconds[rand() % possibleSeconds.size()];
+        if(currentFirst >= solution.size() || solution[currentFirst].size() == 0) {
             continue;
         }
 
@@ -165,15 +179,15 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
     int t = 0;
     int maxN = 5 * nOrders;
 
-    nshiftgenerator gen(lifeTime, nRobots, robotCapacity, solution);
-    cout << endl;
+    nswapgenerator gen(lifeTime, nRobots, robotCapacity, solution);
+//    cout << endl;
     while(true) {
         t++;
         if(t >= 10000) {
             break;
         }
-        cout << " T:             " << t << "       \r";
-        cout.flush();
+//        cout << " T:             " << t << "       \r";
+//        cout.flush();
 
         gen.step(t); // Remove "old" tabu moves at this point
         gen.reset(solution);

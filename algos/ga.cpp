@@ -43,7 +43,7 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
       baseChromosome.push_back(v);
     }
 
-    for (int i = 0; i < robotCapacity - V.size(); i++) {
+    for (size_t i = 0; i < robotCapacity - V.size(); i++) {
       baseChromosome.push_back(-1);
     }
   }

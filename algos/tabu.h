@@ -47,7 +47,7 @@ namespace tabu {
     public:
         vector<vector<int>> solution;
         nswapgenerator(int lifeTime, size_t nRobots, size_t robotCapacity, const vector<vector<int>> &solution) : robotCapacity(robotCapacity), nRobots(nRobots), tabus(lifeTime), solution(solution){}
-        vector<vector<int>> next();
+        pair<vector<vector<int>>, bool> next();
         bool eof();
         tuple<int,int,int,int> getBestMove();
         tuple<int,int,int,int> getMove();
