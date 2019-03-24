@@ -6,15 +6,39 @@ pair<vector<vector<int>>, bool> tabu::nswapgenerator::next() {
     if (isEof) {
         throw runtime_error("Tried to get next when nswapgenerator has reached eof");
     }
+    
+    swap(solution[currentFirst][currentFirstOrder], solution[currentSecond][currentSecondOrder]);
+//    int oldFirst = currentFirst, oldSecond = currentSecond, oldFirstOrder = currentFirstOrder, oldSecondOrder = currentSecondOrder;
 
-    while(true) {
+    for(int i = 0; i < 50000; i++) {
         if(isEof) {
             return {solution, false};
         }
 
+
         // Swap back to the initial state
+        currentFirst = rand() % solution.size();
+        currentSecond = rand() % solution.size();
+        if(currentFirst == currentSecond) {
+            continue;
+        }
+
+        currentFirstOrder = rand() % solution[currentFirst].size();
+        currentSecondOrder = rand() % solution[currentSecond].size();
+
+        if(checked.find(getMove()) != checked.end()) {
+            continue;
+        }
+
+        if(tabus.isTabu(this->getMove())) {
+            checked.insert(getMove());
+            continue; // Keep going...
+        }
+
         swap(solution[currentFirst][currentFirstOrder], solution[currentSecond][currentSecondOrder]);
-        currentSecondOrder++;
+        return {solution, true};
+
+/*        currentSecondOrder++;
         if(currentSecondOrder == solution[currentSecond].size()) {
             currentFirstOrder++;
             currentSecondOrder = 0;
@@ -42,9 +66,10 @@ pair<vector<vector<int>>, bool> tabu::nswapgenerator::next() {
             cout << "Checking " << currentFirst << ", " << currentSecond << endl;
             throw runtime_error("xdxd");
         }
+*/
 
         // Swap the orders, 
-        swap(solution[currentFirst][currentFirstOrder], solution[currentSecond][currentSecondOrder]);
+/*        swap(solution[currentFirst][currentFirstOrder], solution[currentSecond][currentSecondOrder]);
         if(currentFirst == solution.size() - 1 && currentSecond == solution.size() - 2 && currentFirstOrder == solution[currentFirst].size() - 1 && currentSecondOrder == solution[currentSecond].size()) {
             // This is the last order that will be processed
             isEof = true;
@@ -53,9 +78,12 @@ pair<vector<vector<int>>, bool> tabu::nswapgenerator::next() {
         if(tabus.isTabu(this->getMove())) {
             continue; // Keep going...
         }
-
-        return {solution, true};
+*/
+//        return {solution, true};
     }
+
+    isEof = true;
+    return {solution, false};
 }
 
 void tabu::nswapgenerator::doBestMove(int t) {

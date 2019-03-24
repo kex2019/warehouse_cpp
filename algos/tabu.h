@@ -43,7 +43,7 @@ namespace tabu {
         bool isEof = false;
         TabuList<tuple<int,int,int,int>> tabus;
         tuple<int,int,int,int> bestMove;
-
+        set<tuple<int,int,int,int>> checked;
     public:
         vector<vector<int>> solution;
         nswapgenerator(int lifeTime, size_t nRobots, size_t robotCapacity, const vector<vector<int>> &solution) : robotCapacity(robotCapacity), nRobots(nRobots), tabus(lifeTime), solution(solution){}
@@ -64,7 +64,6 @@ namespace tabu {
         void setBestMove() {
             bestMove = {currentFirst, currentSecond, currentFirstOrder, currentSecondOrder};
         }
-
     };
     class nshiftgenerator {
         size_t currentFirst = 0;
@@ -85,7 +84,7 @@ namespace tabu {
         tuple<int,int,int> getBestMove();
         tuple<int,int,int> getMove();
         void step(int t) {tabus.step(t);}
-            void reset(const vector<vector<int>>& solution) {
+        void reset(const vector<vector<int>>& solution) {
             this->solution = solution;
             currentFirst = 0;
             currentSecond = 0;
@@ -96,8 +95,21 @@ namespace tabu {
         void setBestMove() {
             bestMove = {currentFirst, currentSecond, currentOrder};
         }
-
-//        vector<tuple<int,int,int>> getMove();
+    };
+    class ncomgenerator {
+        size_t current = 0;
+        size_t nRobots = 0;
+        size_t robotCapacity = 0;
+        bool isEof = false;
+        nshiftgenerator nshift;
+        nswapgenerator nswap;
+    public:
+        ncomgenerator(int lifeTime, size_t nRobots, size_t robotCapacity, const vector<vector<int>> &solution) : nRobots(nRobots), robotCapacity(robotCapacity), nshift(lifeTime, nRobots, robotCapacity, solution), nswap(lifeTime, nRobots, robotCapacity, solution) {}
+//        pair<vector<vector<int>>, bool> next();
+//        void doBestMove(int t);
+//        bool eof();
+//        void step(int t);
+//        void reset(const vector<vector<int>>& solution);
     };
 
     struct Tabu {
