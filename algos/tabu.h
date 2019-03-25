@@ -112,6 +112,26 @@ namespace tabu {
 //        void reset(const vector<vector<int>>& solution);
     };
 
+
+    class BISwapper {
+        TabuList<tuple<int,int,int,int>> tabus;
+        tuple<int,int,int,int> moveToTuple(int fb, int sb, int fo, int so);
+    public:
+        BISwapper(int lifeTime) : tabus(lifeTime){}
+        pair<int, vector<vector<int>>> doBestMove(int t, const Warehouse& warehouse, vector<vector<int>>& solution);
+        void step(int t);
+    };
+
+    class BISwapperSmall {
+        TabuList<tuple<int,int,int,int>> tabus;
+        tuple<int,int,int,int> moveToTuple(int fb, int sb, int fo, int so);
+    public:
+        BISwapperSmall(int lifeTime) : tabus(lifeTime){}
+        pair<int, vector<SmallVector<uint16_t>>> doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<uint16_t>>& solution);
+        void step(int t);
+    };
+
+
     struct Tabu {
         vector<vector<int>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse);
     };

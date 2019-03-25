@@ -115,6 +115,76 @@ vector<int> run(ResultHandler &resultHandler, T t, const vector<tuple<WarehouseI
     return results;
 }
 
+void tst(WarehouseInfo info_xxxl) {
+    int nRobots = 100;
+    int capcaity = 8;
+    Warehouse warehouse = generateRandomWarehouse(info_xxxl, 1337);
+    cw::cw c;
+    auto sol = c.solve(nRobots, capcaity, warehouse);
+    vector<SmallVector<uint16_t>> solution(sol.size());
+    for(size_t i = 0; i < sol.size(); i++) {
+        for(size_t j = 0; j < sol[i].size(); j++) {
+            solution[i].push_back(sol[i][j]);
+        }
+    }
+
+    int N = 10000;
+    vector<long> clocks(N);
+    cout << "Test small vectors" << endl;
+    for(int i = 0; i < N; i++) {
+        cout << i << "                 \r";
+        cout.flush();
+        tabu::BISwapperSmall bi(10);        
+        clock_t c_start = clock();
+        auto p = bi.doBestMove(0, warehouse, solution);
+        clock_t c_end = clock();
+        clocks.push_back(c_end - c_start);
+        vector<vector<int>> sol(p.second.size());
+        for(int y = 0; y < p.second.size(); y++) {
+            for(int x = 0; x < p.second[y].size(); x++) {
+                sol[y].push_back(p.second[y][x]);
+            }
+        }
+        
+        evaluateSolutionTime(warehouse, sol, nRobots, capcaity);
+
+    }
+
+    sort(clocks.begin(), clocks.end());
+    clock_t p95 = clocks[clocks.size() * 0.95];
+    clock_t p99 = clocks[clocks.size() * 0.99];
+    clock_t median = clocks[clocks.size() / 2];
+    cout << "CLOCK P95 " << p95 << ", P99: " << p99 << ", median: " << median << endl;
+}
+
+void tst2(WarehouseInfo info_xxxl) {
+    int nRobots = 100;
+    int capcaity = 8;
+    Warehouse warehouse = generateRandomWarehouse(info_xxxl, 1337);
+    cw::cw c;
+    auto sol = c.solve(nRobots, capcaity, warehouse);
+
+    int N = 10000;
+    vector<long> clocks(N);
+    cout << "Test normal vectors" << endl;
+    for(int i = 0; i < N; i++) {
+        cout << i << "                 \r";
+        cout.flush();
+        tabu::BISwapper bi(10);        
+        clock_t c_start = clock();
+        bi.doBestMove(0, warehouse, sol);
+        clock_t c_end = clock();
+        clocks.push_back(c_end - c_start);
+    }
+
+    sort(clocks.begin(), clocks.end());
+    clock_t p95 = clocks[clocks.size() * 0.95];
+    clock_t p99 = clocks[clocks.size() * 0.99];
+    clock_t median = clocks[clocks.size() / 2];
+    cout << "CLOCK P95 " << p95 << ", P99: " << p99 << ", median: " << median << endl;
+}
+
+
 int main() {
     WarehouseInfo info_xs;
     info_xs.aisles = 2;
@@ -173,15 +243,19 @@ int main() {
     info_xxxl.shelfHeight = 20;
     info_xxxl.packages = 800;
 
+//    tst(info_xxxl);
+//    tst2(info_xxxl);
+
+
     // WarehouseInfo, nRobots, robotCapacity
     vector<tuple<WarehouseInfo, int, int>> params{
         {info_xs, 4, 5},
         {info_s, 8, 5},
         {info_m, 16, 5},
-        //{info_l, 32, 5},
-        //{info_xl, 64, 5},
-        //{info_xxl, 128, 5},
-        //{info_xxxl, 100, 8},
+        {info_l, 32, 5},
+        {info_xl, 64, 5},
+        {info_xxl, 128, 5},
+        {info_xxxl, 100, 8},
     };
 
     // TODO Run with many more generations and bigger population size
@@ -194,8 +268,8 @@ int main() {
 
     auto seeds = generateSeeds(20);
     
-    auto cws = run(cwsr, cw::cw(), params, seeds);
-    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
+//    auto cws = run(cwsr, cw::cw(), params, seeds);
+//    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
     auto tabu = run(tabur, T, params, seeds);
     auto ga = run(gar, G, params, seeds);
 /*

@@ -1,6 +1,7 @@
 #include "tabu.h"
 
 #include <iostream>
+#include <ctime>
 
 pair<vector<vector<int>>, bool> tabu::nswapgenerator::next() {
     if (isEof) {
@@ -197,89 +198,214 @@ pair<vector<vector<int>>, bool> tabu::nshiftgenerator::next() {
     return {{}, false};
 }
 
+tuple<int,int,int,int> tabu::BISwapper::moveToTuple(int fb, int sb, int fo, int so) {
+    int a = fb > sb ? fb : sb;
+    int b = a == fb ? sb : fb;
+    int c = a == fb ? fo : so;
+    int d = c == fo ? so : fo;
+    return tuple<int,int,int,int>(a, b, c, d);
+}
+
+pair<int, vector<vector<int>>> tabu::BISwapper::doBestMove(int t, const Warehouse& warehouse, vector<vector<int>>& solution) {
+    int bestFirstBatch = -1;
+    int bestSecondBatch = -1;
+    int bestFirstOrder = -1;
+    int bestSecondOrder = -1;
+    int bestIncrease = -1e6;
+//    int fst = rand() % 2;
+//    int m = 1;
+//    int fst = 0;
+
+    for(size_t i = 0; i < solution.size(); ++i) {
+        if(!solution[i].size()) {
+            continue;
+        }
+        int itime = warehouse.getTimeForSequence(solution[i]);
+        for(size_t j = i+1; j < solution.size(); ++j) {
+            if(!solution[j].size()) {
+                continue;
+            }
+            int originalTime = itime + warehouse.getTimeForSequence(solution[j]);
+
+            for(size_t io = 0; io < solution[i].size(); ++io) {
+                for(size_t jo = 0; jo < solution[j].size(); ++jo) {
+                    if(tabus.isTabu(moveToTuple(i,j,io,jo))) {
+                        continue;
+                    }
+
+                    swap(solution[i][io], solution[j][jo]);
+                    int newTime = warehouse.getTimeForSequence(solution[i]) + warehouse.getTimeForSequence(solution[j]);
+                    if(originalTime - newTime > bestIncrease) {
+                        bestIncrease = originalTime - newTime;
+                        bestFirstBatch = i;
+                        bestSecondBatch = j;
+                        bestFirstOrder = io;
+                        bestSecondOrder = jo;
+                    }
+                    swap(solution[i][io], solution[j][jo]);
+                }
+            }
+        }
+    }
+
+    if(bestFirstBatch == -1) {
+//        cout << "Could not find best increase...";
+        return {bestIncrease, solution};
+    }
+
+    swap(solution[bestFirstBatch][bestFirstOrder], solution[bestSecondBatch][bestSecondOrder]);
+    tabus.insertTabu(t, moveToTuple(bestFirstBatch, bestSecondBatch, bestFirstOrder, bestSecondOrder));
+    return {bestIncrease, solution};
+}
+
+void tabu::BISwapper::step(int t) {
+    tabus.step(t);
+}
+
+
+
 vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
     int lifeTime = 10;
     int nOrders = warehouse.getPackageLocations().size();
     cw::cw c;
-    auto solution = c.solve(nRobots, robotCapacity, warehouse);
-    vector<vector<int>> bestSolution = solution;
+    auto sol = c.solve(nRobots, robotCapacity, warehouse);
+    vector<SmallVector<uint16_t>> solution(sol.size());
+    for(size_t i = 0; i < sol.size(); i++) {
+        for(size_t j = 0; j < sol[i].size(); j++) {
+            solution[i].push_back(sol[i][j]);
+        }
+    }
+
+    vector<SmallVector<uint16_t>> bestSolution = solution;
+    //vector<vector<int>> solution = sol;
+    //vector<vector<int>> bestSolution = solution;
+
+
     int bestSolutionScore = evaluateSolutionTime(warehouse, bestSolution, nRobots, robotCapacity);
     int t = 0;
     int maxN = 5 * nOrders;
 
-    nswapgenerator gen(lifeTime, nRobots, robotCapacity, solution);
+    BISwapperSmall swp(lifeTime);
+    clock_t avgclock = 0;
+    int N = 0;
 //    cout << endl;
     while(true) {
         t++;
+        //cout << t << " ";
         if(t >= 10000) {
             break;
         }
+        clock_t start = clock();
 //        cout << " T:             " << t << "       \r";
 //        cout.flush();
 
-        gen.step(t); // Remove "old" tabu moves at this point
-        gen.reset(solution);
+        swp.step(t);
+//        gen.step(t); //i Remove "old" tabu moves at this point
+//        gen.reset(solution);
         int quality = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
-        vector<vector<int>> nextBestSolution = solution;
+        vector<SmallVector<uint16_t>> nextBestSolution = solution;
+//        vector<vector<int>> nextBestSolution = solution;
         int nextBestQuality = quality;
-        bool switched = false;
-        int nSinceSwitch = 0;
-
-        bool foundBetter = false;
-        int tt = 0;
-        while(!gen.eof()) {
-            tt++;
-            if(switched && nSinceSwitch > nOrders) {
-                break; // Checked enough since we found a better one.
-            }
-            if(tt > maxN) {
-                break; // Checked to many
-            }
-
-
-            // Get next move to check
-            auto nexts = gen.next();
-            if(!nexts.second) {
-                return bestSolution;
-            }
-
-            auto next = nexts.first;
-            // Check it's not on tabu
-            if(gen.eof()) {
-                break;
-            }
-
-            nSinceSwitch++;
-            int nextQuality = evaluateSolutionTime(warehouse, next, nRobots, robotCapacity);
-            if(quality * 105 > nextQuality * 100) {
-                if(switched && nextBestQuality > nextQuality) {
-                    nextBestQuality = nextQuality;
-                    nextBestSolution = next;
-                    gen.setBestMove();
-                } else if (!switched) {
-                    switched = true;
-                    nextBestQuality = nextQuality;
-                    nextBestSolution = next;
-                    foundBetter = true;
-                    gen.setBestMove();
-                }
-            }
-        }
-
-        if(!foundBetter) {
-            // Actually want to grab a tabu move, for now just kill everything
-            break;
-        }
-
         // Replace our solution with this one.
-        gen.doBestMove(t);
+        auto moveres = swp.doBestMove(t, warehouse, solution);
+        //cout << moveres.first << endl;
+
+        nextBestQuality = quality - moveres.first;
+        nextBestSolution = moveres.second;
+        //gen.doBestMove(t);
         if(nextBestQuality < bestSolutionScore) {
+//            cout << "NextBest: " << nextBestQuality << endl;
             bestSolutionScore = nextBestQuality;
             bestSolution = nextBestSolution;
         }
 
         solution = nextBestSolution;
+        avgclock = (avgclock * N + (clock() - start)) / (N + 1);
+        N++;
     }
 
-    return bestSolution;
+    double avgms = (double)avgclock / (double)CLOCKS_PER_SEC;
+    cout << "TOOK an avarage of: " << avgms << " to process, total: " << avgms * N << endl;
+
+    vector<vector<int>> convertedVec(sol.size());
+    for(size_t i = 0; i < bestSolution.size(); i++) {
+        for(size_t j = 0; j < bestSolution[i].size(); j++) {
+            convertedVec[i].push_back(bestSolution[i][j]);
+        }
+    }
+
+    return convertedVec;
+}
+
+
+
+
+
+
+
+
+
+
+tuple<int,int,int,int> tabu::BISwapperSmall::moveToTuple(int fb, int sb, int fo, int so) {
+    int a = fb > sb ? fb : sb;
+    int b = a == fb ? sb : fb;
+    int c = a == fb ? fo : so;
+    int d = c == fo ? so : fo;
+    return tuple<int,int,int,int>(a, b, c, d);
+}
+
+pair<int, vector<SmallVector<uint16_t>>> tabu::BISwapperSmall::doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<uint16_t>>& solution) {
+    int bestFirstBatch = -1;
+    int bestSecondBatch = -1;
+    int bestFirstOrder = -1;
+    int bestSecondOrder = -1;
+    int bestIncrease = -1e6;
+//    int fst = rand() % 2;
+//    int m = 1;
+//    int fst = 0;
+
+    for(size_t i = 0; i < solution.size(); ++i) {
+        if(!solution[i].size()) {
+            continue;
+        }
+        int itime = warehouse.getTimeForSequence(solution[i]);
+        for(size_t j = i+1; j < solution.size(); ++j) {
+            if(!solution[j].size()) {
+                continue;
+            }
+            int originalTime = itime + warehouse.getTimeForSequence(solution[j]);
+
+            for(size_t io = 0; io < solution[i].size(); ++io) {
+                for(size_t jo = 0; jo < solution[j].size(); ++jo) {
+                    if(tabus.isTabu(moveToTuple(i,j,io,jo))) {
+                        continue;
+                    }
+
+                    swap(solution[i][io], solution[j][jo]);
+                    int newTime = warehouse.getTimeForSequence(solution[i]) + warehouse.getTimeForSequence(solution[j]);
+                    if(originalTime - newTime > bestIncrease) {
+                        bestIncrease = originalTime - newTime;
+                        bestFirstBatch = i;
+                        bestSecondBatch = j;
+                        bestFirstOrder = io;
+                        bestSecondOrder = jo;
+                    }
+                    swap(solution[i][io], solution[j][jo]);
+                }
+            }
+        }
+    }
+
+    if(bestFirstBatch == -1) {
+//        cout << "Could not find best increase...";
+        return {bestIncrease, solution};
+    }
+
+    swap(solution[bestFirstBatch][bestFirstOrder], solution[bestSecondBatch][bestSecondOrder]);
+    tabus.insertTabu(t, moveToTuple(bestFirstBatch, bestSecondBatch, bestFirstOrder, bestSecondOrder));
+    return {bestIncrease, solution};
+}
+
+void tabu::BISwapperSmall::step(int t) {
+    tabus.step(t);
 }

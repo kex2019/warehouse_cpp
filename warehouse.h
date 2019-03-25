@@ -23,6 +23,46 @@ struct WarehouseInfo {
     int packages = 10;
 };
 
+template<typename T>
+struct SmallVector {
+    unsigned sz;
+    T a0;
+    T a1;
+    T a2;
+    T a3;
+    T a4;
+    T a5;
+    T a6;
+    T a7;
+    T& operator[](unsigned i) {
+        return *(&a0 + i);
+    }
+    const T& operator[](unsigned i) const{
+        return *(&a0 + i);
+    }
+
+    unsigned size() const {
+        return sz;
+    }
+    void push_back(T t) {
+        (*this)[sz] = t;
+        sz++;
+    }
+    T& back() {
+        return (*this)[sz - 1];
+    }
+    T& front() {
+        return (*this)[0];
+    }
+    const T& back() const {
+        return (*this)[sz - 1];
+    }
+    const T& front() const {
+        return (*this)[0];
+    }
+
+};
+
 class Warehouse {
     int height;
     int width;
@@ -45,14 +85,19 @@ public:
     int getLengthToDrop(int a);
     int getLengthBetween(int a, int b);
     int getTimeForSequence(const vector<int>& idxSeq, int from = -1, int to = -1) const;
+    int getTimeForSequence(const SmallVector<uint16_t> &idxSeq) const;
+
     const vector<vector<bool>>& getWalkable() const;
     const vector<Position>& getPackageLocations() const;
     const vector<vector<int>>& getPathLengths() const;
     string to_string();
 };
 
+
+
 Warehouse generateRandomWarehouse(WarehouseInfo info, long seed);
 int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>& bacthes, size_t nRobots, size_t robotCapacity);
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<SmallVector<uint16_t>>& batches, size_t nRobots, size_t robotCapacity);
 /*
     Overloaded function that assumes each batch is of size robotCapacity (last batch can be of other size however)
 */

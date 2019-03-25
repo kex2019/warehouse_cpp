@@ -7,7 +7,7 @@ vector<vector<int>> cw::cw::solve(size_t nRobots, size_t robotCapacity, const Wa
     vector<int> orderCost(orderLocations.size());
     for(size_t i = 0; i < orderIdxs.size(); i++) {
         orderIdxs[i] = i;
-        orderCost[i] = warehouse.getTimeForSequence({static_cast<int>(i)});
+        orderCost[i] = warehouse.getTimeForSequence(vector<int>{static_cast<int>(i)});
     }
     vector<pair<int,int>> orderPairs;
     vector<pair<int,int>> pairCost;
@@ -18,7 +18,7 @@ vector<vector<int>> cw::cw::solve(size_t nRobots, size_t robotCapacity, const Wa
                 int idx = static_cast<int>(i);
                 int jdx = static_cast<int>(j);
                 orderPairs.push_back({idx,jdx});
-                pairCost.push_back({warehouse.getTimeForSequence({idx,jdx}), orderPairs.size() - 1});
+                pairCost.push_back({warehouse.getTimeForSequence(vector<int>{idx,jdx}), orderPairs.size() - 1});
             }
         }
     }

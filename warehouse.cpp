@@ -51,6 +51,39 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& batches
     return *latestRobots.begin();
 }
 
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<SmallVector<uint16_t>>& batches, size_t nRobots, size_t robotCapacity) {
+    vector<int> takenPackages(warehouse.getPackageLocations().size(), 0);
+    set<int> earliestRobots;
+    set<int, greater<>> latestRobots;
+    bool invalid = false;
+
+
+    for(size_t i = 0; i < batches.size(); i++) {
+        if(batches[i].size() == 0) {
+            continue; // No items for this robot :'(
+        }
+        if(batches[i].size() > robotCapacity) {
+            cerr << "Batch: ";
+            cerr << " has size: " << batches[i].size() << " while the robot can only carry: " << robotCapacity << endl;
+            invalid = true;
+        }
+        int tseq = warehouse.getTimeForSequence(batches[i]);
+        if(nRobots > earliestRobots.size()) {
+            earliestRobots.insert(tseq);
+            latestRobots.insert(tseq);
+        } else {
+            // Remove the earliest robot
+            int earliest = *earliestRobots.begin();
+            earliestRobots.erase(earliestRobots.begin());
+            earliestRobots.insert(tseq + earliest);
+            latestRobots.insert(tseq + earliest);
+        }
+    }
+
+    return *latestRobots.begin();
+
+}
+
 int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>& batches, size_t nRobots, size_t robotCapacity) {
     vector<int> takenPackages(warehouse.getPackageLocations().size(), 0);
     set<int> earliestRobots;
@@ -284,6 +317,20 @@ int findFirstNonNegOneBackward(const vector<int>& idxSeq, int i, int from) {
     }
     return i;
 }
+
+int Warehouse::getTimeForSequence(const SmallVector<uint16_t> &idxSeq) const {
+    if(idxSeq.size() <= 0) {
+        throw runtime_error("idxSeq must have at least one element");
+    }
+
+    int totalTime = 0;
+    for(int i = 0; i < idxSeq.size() - 1; i++) {
+        totalTime += pathLengthBetween[idxSeq[i] + 2][idxSeq[i + 1] + 2];
+    }
+
+    return totalTime + pathLengthBetween[0][idxSeq.front() + 2] + pathLengthBetween[idxSeq.back() + 2][1];
+}
+
 
 int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) const {
     if(from == -1) {
