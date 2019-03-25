@@ -268,8 +268,8 @@ int main() {
 
     auto seeds = generateSeeds(20);
     
-//    auto cws = run(cwsr, cw::cw(), params, seeds);
-//    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
+    auto cws = run(cwsr, cw::cw(), params, seeds);
+    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
     auto tabu = run(tabur, T, params, seeds);
     auto ga = run(gar, G, params, seeds);
 /*
