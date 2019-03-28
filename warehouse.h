@@ -4,6 +4,7 @@
 #include <string>
 using namespace std;
 typedef pair<int,int> Position;
+typedef int16_t PackID;
 /*struct Position : public pair<int,int> {
     int& x() {
         return this->second;
@@ -81,11 +82,11 @@ public:
         Finds the time for when we take the packages in this order
         idxSeq must contain at least one element 
     */
-    int getLengthToStart(int a);
-    int getLengthToDrop(int a);
-    int getLengthBetween(int a, int b);
-    int getTimeForSequence(const vector<int>& idxSeq, int from = -1, int to = -1) const;
-    int getTimeForSequence(const SmallVector<uint16_t> &idxSeq) const;
+    int getLengthToStart(PackID a);
+    int getLengthToDrop(PackID a);
+    int getLengthBetween(PackID a, PackID b);
+    int getTimeForSequence(const vector<PackID>& idxSeq, int from = -1, int to = -1) const;
+    int getTimeForSequence(const SmallVector<PackID> &idxSeq) const;
 
     const vector<vector<bool>>& getWalkable() const;
     const vector<Position>& getPackageLocations() const;
@@ -96,11 +97,11 @@ public:
 
 
 Warehouse generateRandomWarehouse(WarehouseInfo info, long seed);
-int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>& bacthes, size_t nRobots, size_t robotCapacity);
-int evaluateSolutionTime(const Warehouse & warehouse, const vector<SmallVector<uint16_t>>& batches, size_t nRobots, size_t robotCapacity);
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<PackID>>& bacthes, size_t nRobots, size_t robotCapacity);
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<SmallVector<PackID>>& batches, size_t nRobots, size_t robotCapacity);
 /*
     Overloaded function that assumes each batch is of size robotCapacity (last batch can be of other size however)
 */
-int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& bacthes, size_t nRobots, size_t robotCapacity);
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<PackID>& batches, size_t nRobots, size_t robotCapacity);
 
-vector<int> getRobotTravelTimes(const Warehouse& warehouse, const vector<vector<int>>& batches, size_t nRobots, size_t robotCapacity);
+vector<int> getRobotTravelTimes(const Warehouse& warehouse, const vector<vector<PackID>>& batches, size_t nRobots, size_t robotCapacity);

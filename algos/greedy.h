@@ -5,6 +5,6 @@
 
 namespace greedy {
     struct greedy {
-        vector<vector<int>> solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse);
+        vector<vector<PackID>> solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse);
     };
 };

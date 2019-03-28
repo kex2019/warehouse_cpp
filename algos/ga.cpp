@@ -8,7 +8,7 @@
 
 // Or maybe: Adjacent Swaps on Strings
 // If we need linear, use Cayley distance? (eg. cycles in the permutation). compose c1 with the inverse of c2 and count the number of cycles
-int calcSwappingDistance(vector<int> c1, vector<int> c2) {
+int calcSwappingDistance(vector<PackID> c1, vector<PackID> c2) {
   int nSame = 0;
   for(size_t i = 0; i < c1.size(); i++) {
     if(c1[i] == c2[i])
@@ -18,7 +18,7 @@ int calcSwappingDistance(vector<int> c1, vector<int> c2) {
   return c1.size() - nSame;
 }
 
-vector<vector<int>> ga::Ga::solve(size_t nRobots, 
+vector<vector<PackID>> ga::Ga::solve(size_t nRobots, 
     size_t robotCapacity, 
     const Warehouse &warehouse) {
 
@@ -29,14 +29,14 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
   //  cout << "\nStarting GA -- " << "Generations: " << this->generations << " -- Population: " << this->population << "\n";
   // Generate chromosomes
   size_t orders = warehouse.getPackageLocations().size();
-  vector<int> baseChromosome;
+  vector<PackID> baseChromosome;
 
   //// Add orders to chromosome
   //for (size_t i = 0; i < orders; i++)
     //baseChromosome.push_back(static_cast<int>(i));
 
   greedy::greedy greedSolver = greedy::greedy{};
-  vector<vector<int>> greedySolution = greedSolver.solve(nRobots, robotCapacity, warehouse);
+  vector<vector<PackID>> greedySolution = greedSolver.solve(nRobots, robotCapacity, warehouse);
   
   for (auto V: greedySolution) {
     for (auto v: V) {
@@ -57,7 +57,7 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
 
   this->chromosomeSize = robotCapacity * nRobots;
   this->numObsOrders = vector<int>(orders);
-  this->apexChromosome = vector<int>{};
+  this->apexChromosome = vector<PackID>{};
   this->apexPerformance = -1e5;
   this->chromosomeIDs.clear();
 
@@ -118,8 +118,8 @@ vector<vector<int>> ga::Ga::solve(size_t nRobots,
     this->mutate(chromosomes, fitnesses);
   }
 
-  vector<vector<int>> solution;
-  vector<int> batch;
+  vector<vector<PackID>> solution;
+  vector<PackID> batch;
   for (size_t i = 0; i < chromosomeSize; i++) {
     if (i % robotCapacity == 0 && i != 0) {
       solution.push_back(batch);

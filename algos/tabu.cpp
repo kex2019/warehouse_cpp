@@ -3,7 +3,7 @@
 #include <iostream>
 #include <ctime>
 
-pair<vector<vector<int>>, bool> tabu::nswapgenerator::next() {
+pair<vector<vector<PackID>>, bool> tabu::nswapgenerator::next() {
     if (isEof) {
         throw runtime_error("Tried to get next when nswapgenerator has reached eof");
     }
@@ -138,7 +138,7 @@ bool tabu::nshiftgenerator::eof() {
 }
 
 
-pair<vector<vector<int>>, bool> tabu::nshiftgenerator::next() {
+pair<vector<vector<PackID>>, bool> tabu::nshiftgenerator::next() {
     if (isEof) {
         throw runtime_error("Tried to get next when nshiftgenerator has reached eof");
     }
@@ -186,7 +186,7 @@ pair<vector<vector<int>>, bool> tabu::nshiftgenerator::next() {
         }
 
         // We can do this move :o 
-        vector<vector<int>> sol(solution);
+        vector<vector<PackID>> sol(solution);
         while(sol.size() <= currentSecond) {
             sol.push_back({});
         }
@@ -206,7 +206,7 @@ tuple<int,int,int,int> tabu::BISwapper::moveToTuple(int fb, int sb, int fo, int 
     return tuple<int,int,int,int>(a, b, c, d);
 }
 
-pair<int, vector<vector<int>>> tabu::BISwapper::doBestMove(int t, const Warehouse& warehouse, vector<vector<int>>& solution) {
+pair<int, vector<vector<PackID>>> tabu::BISwapper::doBestMove(int t, const Warehouse& warehouse, vector<vector<PackID>>& solution) {
     int bestFirstBatch = -1;
     int bestSecondBatch = -1;
     int bestFirstOrder = -1;
@@ -264,19 +264,19 @@ void tabu::BISwapper::step(int t) {
 
 
 
-vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
+vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
     int lifeTime = 10;
     int nOrders = warehouse.getPackageLocations().size();
     cw::cw c;
     auto sol = c.solve(nRobots, robotCapacity, warehouse);
-    vector<SmallVector<uint16_t>> solution(sol.size());
+    vector<SmallVector<PackID>> solution(sol.size());
     for(size_t i = 0; i < sol.size(); i++) {
         for(size_t j = 0; j < sol[i].size(); j++) {
             solution[i].push_back(sol[i][j]);
         }
     }
 
-    vector<SmallVector<uint16_t>> bestSolution = solution;
+    vector<SmallVector<PackID>> bestSolution = solution;
     //vector<vector<int>> solution = sol;
     //vector<vector<int>> bestSolution = solution;
 
@@ -296,14 +296,11 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
             break;
         }
         clock_t start = clock();
-//        cout << " T:             " << t << "       \r";
-//        cout.flush();
-
         swp.step(t);
 //        gen.step(t); //i Remove "old" tabu moves at this point
 //        gen.reset(solution);
         int quality = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
-        vector<SmallVector<uint16_t>> nextBestSolution = solution;
+        vector<SmallVector<PackID>> nextBestSolution = solution;
 //        vector<vector<int>> nextBestSolution = solution;
         int nextBestQuality = quality;
         // Replace our solution with this one.
@@ -327,7 +324,7 @@ vector<vector<int>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Ware
     double avgms = (double)avgclock / (double)CLOCKS_PER_SEC;
     cout << "TOOK an avarage of: " << avgms << " to process, total: " << avgms * N << endl;
 
-    vector<vector<int>> convertedVec(sol.size());
+    vector<vector<PackID>> convertedVec(sol.size());
     for(size_t i = 0; i < bestSolution.size(); i++) {
         for(size_t j = 0; j < bestSolution[i].size(); j++) {
             convertedVec[i].push_back(bestSolution[i][j]);
@@ -354,7 +351,7 @@ tuple<int,int,int,int> tabu::BISwapperSmall::moveToTuple(int fb, int sb, int fo,
     return tuple<int,int,int,int>(a, b, c, d);
 }
 
-pair<int, vector<SmallVector<uint16_t>>> tabu::BISwapperSmall::doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<uint16_t>>& solution) {
+pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmall::doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<PackID>>& solution) {
     int bestFirstBatch = -1;
     int bestSecondBatch = -1;
     int bestFirstOrder = -1;

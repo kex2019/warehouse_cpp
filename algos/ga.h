@@ -6,7 +6,7 @@
 #include <random>
 #include <time.h>
 
-typedef vector<vector<int>> Chromosomes;
+typedef vector<vector<PackID>> Chromosomes;
 
 using namespace std;
 namespace ga {
@@ -15,7 +15,7 @@ namespace ga {
     vector<int> numObsOrders;
     unsigned int chromosomeSize;
     vector<int> chromosomeIDs;
-    vector<int> apexChromosome;
+    vector<PackID> apexChromosome;
     double apexPerformance;
 
     vector<double> performances;
@@ -28,7 +28,7 @@ namespace ga {
     double alpha;
     double beta;
     // This vector of vector of ints is a splitted chromosome
-    vector<vector<int>> solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse);
+    vector<vector<PackID>> solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse);
 
     void fitness(Chromosomes &chromosomes, vector<double> &fitnesses, int nRobots, int robotCapacity, const Warehouse &warehouse);
     vector<int> select(vector<double> &fitnesses, double keepN);

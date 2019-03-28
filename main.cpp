@@ -121,7 +121,7 @@ void tst(WarehouseInfo info_xxxl) {
     Warehouse warehouse = generateRandomWarehouse(info_xxxl, 1337);
     cw::cw c;
     auto sol = c.solve(nRobots, capcaity, warehouse);
-    vector<SmallVector<uint16_t>> solution(sol.size());
+    vector<SmallVector<PackID>> solution(sol.size());
     for(size_t i = 0; i < sol.size(); i++) {
         for(size_t j = 0; j < sol[i].size(); j++) {
             solution[i].push_back(sol[i][j]);
@@ -139,7 +139,7 @@ void tst(WarehouseInfo info_xxxl) {
         auto p = bi.doBestMove(0, warehouse, solution);
         clock_t c_end = clock();
         clocks.push_back(c_end - c_start);
-        vector<vector<int>> sol(p.second.size());
+        vector<vector<PackID>> sol(p.second.size());
         for(int y = 0; y < p.second.size(); y++) {
             for(int x = 0; x < p.second[y].size(); x++) {
                 sol[y].push_back(p.second[y][x]);

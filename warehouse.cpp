@@ -6,7 +6,16 @@
 #include <algorithm>
 #include <cmath>
 
-void inlineCerrVec(const vector<int>& vec) {
+template<typename T>
+void inlineCerrVec(const vector<T>& vec) {
+    cerr << "{ ";
+    for(auto i : vec ) {
+        cerr << i << " ";
+    }
+    cerr << "}";
+}
+template<typename T>
+void inlineCoutVec(const vector<T>& vec) {
     cerr << "{ ";
     for(auto i : vec ) {
         cerr << i << " ";
@@ -14,15 +23,7 @@ void inlineCerrVec(const vector<int>& vec) {
     cerr << "}";
 }
 
-void inlineCoutVec(const vector<int>& vec) {
-    cerr << "{ ";
-    for(auto i : vec ) {
-        cerr << i << " ";
-    }
-    cerr << "}";
-}
-
-int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& batches, size_t nRobots, size_t robotCapacity) {
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<PackID>& batches, size_t nRobots, size_t robotCapacity) {
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
 
@@ -51,8 +52,8 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<int>& batches
     return *latestRobots.begin();
 }
 
-int evaluateSolutionTime(const Warehouse & warehouse, const vector<SmallVector<uint16_t>>& batches, size_t nRobots, size_t robotCapacity) {
-    vector<int> takenPackages(warehouse.getPackageLocations().size(), 0);
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<SmallVector<PackID>>& batches, size_t nRobots, size_t robotCapacity) {
+    vector<PackID> takenPackages(warehouse.getPackageLocations().size(), 0);
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
     bool invalid = false;
@@ -84,8 +85,8 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<SmallVector<u
 
 }
 
-int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>& batches, size_t nRobots, size_t robotCapacity) {
-    vector<int> takenPackages(warehouse.getPackageLocations().size(), 0);
+int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<PackID>>& batches, size_t nRobots, size_t robotCapacity) {
+    vector<PackID> takenPackages(warehouse.getPackageLocations().size(), 0);
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
     bool invalid = false;
@@ -134,8 +135,8 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<int>>&
     return *latestRobots.begin();
 }
 
-vector<int> getRobotTravelTimes(const Warehouse& warehouse, const vector<vector<int>>& batches, size_t nRobots, size_t robotCapacity) {
-    vector<int> takenPackages(warehouse.getPackageLocations().size(), 0);
+vector<int> getRobotTravelTimes(const Warehouse& warehouse, const vector<vector<PackID>>& batches, size_t nRobots, size_t robotCapacity) {
+    vector<PackID> takenPackages(warehouse.getPackageLocations().size(), 0);
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
     bool invalid = false;
@@ -292,33 +293,33 @@ vector<vector<int>> Warehouse::calcPathLengthFrom(Position a) {
     return lens;
 }
 
-int Warehouse::getLengthToStart(int a) {
+int Warehouse::getLengthToStart(PackID a) {
     return pathLengthBetween[1][a+2];
 }
-int Warehouse::getLengthToDrop(int a) {
+int Warehouse::getLengthToDrop(PackID a) {
     return pathLengthBetween[0][a+2];
 }
-int Warehouse::getLengthBetween(int a, int b) {
+int Warehouse::getLengthBetween(PackID a, PackID b) {
     return pathLengthBetween[a+2][b+2];
 }
 const vector<vector<int>>& Warehouse::getPathLengths() const {
     return this->pathLengthBetween;
 }
 
-int findFirstNonNegOneForward(const vector<int>& idxSeq, int i, int to) {
+int findFirstNonNegOneForward(const vector<PackID>& idxSeq, int i, int to) {
     while(i < to && idxSeq[i] == -1) {
         i++;
     }
     return i;
 }
-int findFirstNonNegOneBackward(const vector<int>& idxSeq, int i, int from) {
+int findFirstNonNegOneBackward(const vector<PackID>& idxSeq, int i, int from) {
     while(i > from && idxSeq[i] == -1) {
         i--;
     }
     return i;
 }
 
-int Warehouse::getTimeForSequence(const SmallVector<uint16_t> &idxSeq) const {
+int Warehouse::getTimeForSequence(const SmallVector<PackID> &idxSeq) const {
     if(idxSeq.size() <= 0) {
         throw runtime_error("idxSeq must have at least one element");
     }
@@ -332,7 +333,7 @@ int Warehouse::getTimeForSequence(const SmallVector<uint16_t> &idxSeq) const {
 }
 
 
-int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) const {
+int Warehouse::getTimeForSequence(const vector<PackID> &idxSeq, int from, int to) const {
     if(from == -1) {
         from = 0;
     }
@@ -373,15 +374,6 @@ int Warehouse::getTimeForSequence(const vector<int> &idxSeq, int from, int to) c
         int timeBetween = pathLengthBetween[idxSeq[i] + 2][idxSeq[next] + 2];
         totalTime += timeBetween;
     }
-/*
-    for(int i = from; i < to; i++) {
-        cout << idxSeq[i] << " ";
-    }
-
-    cout << " :::: " << totalTime + timeFromStart + timeToEnd << ", " << totalTime << ", " << timeFromStart << ", " << timeToEnd;
-    cout << "  ::::  (from:start, to:end) " << from << ":" << start <<","<< idxSeq[start] << "  " << to << ":" << idxSeq[end];
-    cout << endl;
-*/
     return totalTime + timeFromStart + timeToEnd;
 }
 

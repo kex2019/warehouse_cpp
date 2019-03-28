@@ -12,14 +12,14 @@ int findClosest(const vector<vector<int>> & lens, vector<bool> used, int from) {
     return minIdx;
 }
 
-vector<vector<int>> greedy::greedy::solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse) {
+vector<vector<PackID>> greedy::greedy::solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse) {
     size_t nTaken = 0;
-    vector<vector<int>> batches;
+    vector<vector<PackID>> batches;
     vector<bool> used(warehouse.getPackageLocations().size(), false);
     auto &lengths = warehouse.getPathLengths();
     while(nTaken < warehouse.getPackageLocations().size()) {
         // Start with the closest package
-        vector<int> batch;
+        vector<PackID> batch;
         int minIdx = findClosest(lengths, used, 0);
         used[minIdx] = true;
         nTaken++;

@@ -45,15 +45,15 @@ namespace tabu {
         tuple<int,int,int,int> bestMove;
         set<tuple<int,int,int,int>> checked;
     public:
-        vector<vector<int>> solution;
-        nswapgenerator(int lifeTime, size_t nRobots, size_t robotCapacity, const vector<vector<int>> &solution) : robotCapacity(robotCapacity), nRobots(nRobots), tabus(lifeTime), solution(solution){}
-        pair<vector<vector<int>>, bool> next();
+        vector<vector<PackID>> solution;
+        nswapgenerator(int lifeTime, size_t nRobots, size_t robotCapacity, const vector<vector<PackID>> &solution) : robotCapacity(robotCapacity), nRobots(nRobots), tabus(lifeTime), solution(solution){}
+        pair<vector<vector<PackID>>, bool> next();
         bool eof();
         tuple<int,int,int,int> getBestMove();
         tuple<int,int,int,int> getMove();
         void doBestMove(int t);
         void step(int t) {tabus.step(t);}
-        void reset(const vector<vector<int>>& solution) {
+        void reset(const vector<vector<PackID>>& solution) {
             this->solution = solution;
             currentFirstOrder = 0;
             currentFirst = 0;
@@ -76,15 +76,15 @@ namespace tabu {
         tuple<int,int,int> bestMove;
         set<tuple<int,int,int>> checked;
     public:
-        vector<vector<int>> solution;
-        nshiftgenerator(int lifeTime, size_t nRobots, size_t robotCapacity, const vector<vector<int>> &solution) : nRobots(nRobots), robotCapacity(robotCapacity), tabus(lifeTime), solution(solution){}
-        pair<vector<vector<int>>, bool> next();
+        vector<vector<PackID>> solution;
+        nshiftgenerator(int lifeTime, size_t nRobots, size_t robotCapacity, const vector<vector<PackID>> &solution) : nRobots(nRobots), robotCapacity(robotCapacity), tabus(lifeTime), solution(solution){}
+        pair<vector<vector<PackID>>, bool> next();
         void doBestMove(int t);
         bool eof();
         tuple<int,int,int> getBestMove();
         tuple<int,int,int> getMove();
         void step(int t) {tabus.step(t);}
-        void reset(const vector<vector<int>>& solution) {
+        void reset(const vector<vector<PackID>>& solution) {
             this->solution = solution;
             currentFirst = 0;
             currentSecond = 0;
@@ -104,7 +104,7 @@ namespace tabu {
         nshiftgenerator nshift;
         nswapgenerator nswap;
     public:
-        ncomgenerator(int lifeTime, size_t nRobots, size_t robotCapacity, const vector<vector<int>> &solution) : nRobots(nRobots), robotCapacity(robotCapacity), nshift(lifeTime, nRobots, robotCapacity, solution), nswap(lifeTime, nRobots, robotCapacity, solution) {}
+        ncomgenerator(int lifeTime, size_t nRobots, size_t robotCapacity, const vector<vector<PackID>> &solution) : nRobots(nRobots), robotCapacity(robotCapacity), nshift(lifeTime, nRobots, robotCapacity, solution), nswap(lifeTime, nRobots, robotCapacity, solution) {}
 //        pair<vector<vector<int>>, bool> next();
 //        void doBestMove(int t);
 //        bool eof();
@@ -118,7 +118,7 @@ namespace tabu {
         tuple<int,int,int,int> moveToTuple(int fb, int sb, int fo, int so);
     public:
         BISwapper(int lifeTime) : tabus(lifeTime){}
-        pair<int, vector<vector<int>>> doBestMove(int t, const Warehouse& warehouse, vector<vector<int>>& solution);
+        pair<int, vector<vector<PackID>>> doBestMove(int t, const Warehouse& warehouse, vector<vector<PackID>>& solution);
         void step(int t);
     };
 
@@ -127,12 +127,12 @@ namespace tabu {
         tuple<int,int,int,int> moveToTuple(int fb, int sb, int fo, int so);
     public:
         BISwapperSmall(int lifeTime) : tabus(lifeTime){}
-        pair<int, vector<SmallVector<uint16_t>>> doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<uint16_t>>& solution);
+        pair<int, vector<SmallVector<PackID>>> doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<PackID>>& solution);
         void step(int t);
     };
 
 
     struct Tabu {
-        vector<vector<int>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse);
+        vector<vector<PackID>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse);
     };
 }
