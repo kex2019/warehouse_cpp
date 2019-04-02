@@ -252,14 +252,14 @@ int main() {
         {info_xs, 4, 5},
         {info_s, 8, 5},
         {info_m, 16, 8},
-        //{info_l, 32, 5},
-        //{info_xl, 64, 5},
-        //{info_xxl, 128, 5},
-        //{info_xxxl, 100, 8},
+        {info_l, 32, 5},
+        {info_xl, 64, 5},
+        {info_xxl, 128, 5},
+        {info_xxxl, 100, 8},
     };
 
     // TODO Run with many more generations and bigger population size
-    tabu::StopCondition stop(20000, 250);
+    tabu::StopCondition stop(80000, 250);
     auto G = ga::Ga(500, 1000, 1.0, 1.0);
     auto T = tabu::Tabu(stop);
     ResultHandler cwsr("results", "cws");
