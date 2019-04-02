@@ -259,7 +259,7 @@ int main() {
     };
 
     // TODO Run with many more generations and bigger population size
-    tabu::StopCondition stop(100000, 120);
+    tabu::StopCondition stop(20000, 250);
     auto G = ga::Ga(500, 1000, 1.0, 1.0);
     auto T = tabu::Tabu(stop);
     ResultHandler cwsr("results", "cws");
