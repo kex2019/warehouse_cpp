@@ -288,13 +288,11 @@ vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const W
     BISwapperSmall swp(lifeTime);
     clock_t avgclock = 0;
     int N = 0;
+    clock_t totclock = clock();
 //    cout << endl;
-    while(true) {
+    this->stop.start();
+    while(!this->stop.isDone(true)) {
         t++;
-        //cout << t << " ";
-        if(t >= 10000) {
-            break;
-        }
         clock_t start = clock();
         swp.step(t);
 //        gen.step(t); //i Remove "old" tabu moves at this point
@@ -322,7 +320,7 @@ vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const W
     }
 
     double avgms = (double)avgclock / (double)CLOCKS_PER_SEC;
-    cout << "TOOK an avarage of: " << avgms << " to process, total: " << avgms * N << endl;
+    cout << "TOOK an avarage of: " << avgms << " to process, total: " << ((double)(clock() - totclock)/ (double)CLOCKS_PER_SEC) << endl;
 
     vector<vector<PackID>> convertedVec(sol.size());
     for(size_t i = 0; i < bestSolution.size(); i++) {

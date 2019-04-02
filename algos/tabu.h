@@ -130,9 +130,35 @@ namespace tabu {
         pair<int, vector<SmallVector<PackID>>> doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<PackID>>& solution);
         void step(int t);
     };
+    class StopCondition {
+        unsigned long maxIterations = -1;
+        unsigned long maxTimeSeconds = -1;
+        unsigned long iterations = 0;
+        clock_t startClock = clock();
+    public:
+        StopCondition(unsigned long maxIterations, unsigned long maxTimeSeconds) : maxIterations(maxIterations), maxTimeSeconds(maxTimeSeconds) {}
+        void start() {
+            startClock = clock();
+            iterations = 0;
+        }
+        bool isDone(bool iterate = false) {
+            if(iterations >= maxIterations) {
+                return true;
+            }
+            if((clock() - startClock) / CLOCKS_PER_SEC >= maxTimeSeconds) {
+                return true;
+            }
+            iterations++;
+            return false;
+        }
+    };
+
 
 
     struct Tabu {
+        StopCondition stop;
+        Tabu(StopCondition stop) : stop(stop) {}
         vector<vector<PackID>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse);
     };
+
 }
