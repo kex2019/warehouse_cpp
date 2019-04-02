@@ -123,10 +123,15 @@ namespace tabu {
     };
 
     class BISwapperSmall {
+        int capacity = 10;
         TabuList<tuple<int,int,int,int>> tabus;
+        TabuList<tuple<int,int,int>> pushTabus;
+
         tuple<int,int,int,int> moveToTuple(int fb, int sb, int fo, int so);
+        tuple<int,int,int> movePushToTuple(int fb, int sb, int o);
+
     public:
-        BISwapperSmall(int lifeTime) : tabus(lifeTime){}
+        BISwapperSmall(int lifeTime, int capacity) : capacity(capacity), tabus(lifeTime), pushTabus(lifeTime){}
         pair<int, vector<SmallVector<PackID>>> doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<PackID>>& solution);
         void step(int t);
     };

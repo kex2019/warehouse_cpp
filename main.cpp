@@ -134,7 +134,7 @@ void tst(WarehouseInfo info_xxxl) {
     for(int i = 0; i < N; i++) {
         cout << i << "                 \r";
         cout.flush();
-        tabu::BISwapperSmall bi(10);        
+        tabu::BISwapperSmall bi(10, 8);        
         clock_t c_start = clock();
         auto p = bi.doBestMove(0, warehouse, solution);
         clock_t c_end = clock();
@@ -251,11 +251,11 @@ int main() {
     vector<tuple<WarehouseInfo, int, int>> params{
         {info_xs, 4, 5},
         {info_s, 8, 5},
-        {info_m, 16, 5},
-        {info_l, 32, 5},
-        {info_xl, 64, 5},
-        {info_xxl, 128, 5},
-        {info_xxxl, 100, 8},
+        {info_m, 16, 8},
+        //{info_l, 32, 5},
+        //{info_xl, 64, 5},
+        //{info_xxl, 128, 5},
+        //{info_xxxl, 100, 8},
     };
 
     // TODO Run with many more generations and bigger population size

@@ -2,6 +2,7 @@
 #include <vector>
 #include <utility>
 #include <string>
+#include <iostream>
 using namespace std;
 typedef pair<int,int> Position;
 typedef int16_t PackID;
@@ -26,7 +27,7 @@ struct WarehouseInfo {
 
 template<typename T>
 struct SmallVector {
-    unsigned sz;
+    unsigned sz = 0;
     T a0;
     T a1;
     T a2;
@@ -46,6 +47,9 @@ struct SmallVector {
         return sz;
     }
     void push_back(T t) {
+        if(sz >= 8) {
+            throw runtime_error("Can't push more packages");
+        }
         (*this)[sz] = t;
         sz++;
     }

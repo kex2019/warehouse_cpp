@@ -90,6 +90,7 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<PackID
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
     bool invalid = false;
+    int nTaken = 0;
 
     for(size_t i = 0; i < batches.size(); i++) {
         if(batches[i].size() == 0) {
@@ -101,6 +102,7 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<PackID
             cerr << " has size: " << batches[i].size() << " while the robot can only carry: " << robotCapacity << endl;
             invalid = true;
         }
+        nTaken += batches[i].size();
         int tseq = warehouse.getTimeForSequence(batches[i]);
         if(nRobots > earliestRobots.size()) {
             earliestRobots.insert(tseq);
@@ -126,6 +128,10 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<PackID
             cerr << "Package " << i << " was taken " << takenPackages[i] << " times" << endl;
             invalid = true;
         }
+    }
+
+    if(nTaken < warehouse.getPackageLocations().size()) {
+        cerr << "Took " << nTaken << " packages, but there were: " << warehouse.getPackageLocations().size() << " packages in the warehouse" << endl;
     }
 
     if(invalid) {
@@ -325,7 +331,7 @@ int Warehouse::getTimeForSequence(const SmallVector<PackID> &idxSeq) const {
     }
 
     int totalTime = 0;
-    for(int i = 0; i < idxSeq.size() - 1; i++) {
+    for(size_t i = 0; i < idxSeq.size() - 1; i++) {
         totalTime += pathLengthBetween[idxSeq[i] + 2][idxSeq[i + 1] + 2];
     }
 
