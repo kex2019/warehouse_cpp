@@ -221,25 +221,25 @@ int main() {
 
     WarehouseInfo info_xl;
     info_xl.aisles = 32;
-    info_xl.aisleWidth = 2;
-    info_xl.crossAiles = 2;
-    info_xl.crossAilesWidth = 2;
+    info_xl.aisleWidth = 3;
+    info_xl.crossAiles = 3;
+    info_xl.crossAilesWidth = 3;
     info_xl.shelfHeight = 20;
     info_xl.packages = 320;
 
     WarehouseInfo info_xxl;
     info_xxl.aisles = 64;
-    info_xxl.aisleWidth = 2;
-    info_xxl.crossAiles = 2;
-    info_xxl.crossAilesWidth = 2;
+    info_xxl.aisleWidth = 3;
+    info_xxl.crossAiles = 3;
+    info_xxl.crossAilesWidth = 3;
     info_xxl.shelfHeight = 20;
     info_xxl.packages = 640;
 
     WarehouseInfo info_xxxl;
     info_xxxl.aisles = 80;
-    info_xxxl.aisleWidth = 2;
-    info_xxxl.crossAiles = 2;
-    info_xxxl.crossAilesWidth = 2;
+    info_xxxl.aisleWidth = 3;
+    info_xxxl.crossAiles = 4;
+    info_xxxl.crossAilesWidth = 3;
     info_xxxl.shelfHeight = 20;
     info_xxxl.packages = 800;
 
