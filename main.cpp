@@ -141,8 +141,8 @@ void tst(WarehouseInfo info_xxxl) {
         clock_t c_end = clock();
         clocks.push_back(c_end - c_start);
         vector<vector<PackID>> sol(p.second.size());
-        for(int y = 0; y < p.second.size(); y++) {
-            for(int x = 0; x < p.second[y].size(); x++) {
+        for(size_t y = 0; y < p.second.size(); y++) {
+            for(size_t x = 0; x < p.second[y].size(); x++) {
                 sol[y].push_back(p.second[y][x]);
             }
         }

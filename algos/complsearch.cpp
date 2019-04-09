@@ -74,7 +74,7 @@ void nextSolution(vector<PackID> &a, vector<bool> &dir, int n) {
 
 vector<PackID> getOffsetSolution(vector<PackID> &solution) {
   vector<PackID> offsetSolution = solution;
-  for (int i = 0; i < offsetSolution.size(); i++)
+  for (size_t i = 0; i < offsetSolution.size(); i++)
     offsetSolution[i] -= 1;
 
   return offsetSolution;

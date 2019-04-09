@@ -150,7 +150,7 @@ namespace tabu {
             if(iterations >= maxIterations) {
                 return true;
             }
-            if((clock() - startClock) / CLOCKS_PER_SEC >= maxTimeSeconds) {
+            if(static_cast<unsigned long>((clock() - startClock) / CLOCKS_PER_SEC) >= maxTimeSeconds) {
                 return true;
             }
             iterations++;
@@ -159,10 +159,10 @@ namespace tabu {
     };
 
     class OldSwapGenerator {
-        int currentFirst = 0;
-        int currentSecond = 0;
-        int currentFirstOrder = 0;
-        int currentSecondOrder = 0;
+        unsigned int currentFirst = 0;
+        unsigned int currentSecond = 0;
+        unsigned int currentFirstOrder = 0;
+        unsigned int currentSecondOrder = 0;
         bool isEof = false;
     public:
         vector<vector<PackID>> solution;

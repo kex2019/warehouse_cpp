@@ -56,7 +56,7 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<SmallVector<P
     vector<PackID> takenPackages(warehouse.getPackageLocations().size(), 0);
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
-    bool invalid = false;
+//    bool invalid = false;
 
 
     for(size_t i = 0; i < batches.size(); i++) {
@@ -66,7 +66,7 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<SmallVector<P
         if(batches[i].size() > robotCapacity) {
             cerr << "Batch: ";
             cerr << " has size: " << batches[i].size() << " while the robot can only carry: " << robotCapacity << endl;
-            invalid = true;
+//            invalid = true;
         }
         int tseq = warehouse.getTimeForSequence(batches[i]);
         if(nRobots > earliestRobots.size()) {
@@ -90,7 +90,7 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<PackID
     set<int> earliestRobots;
     set<int, greater<>> latestRobots;
     bool invalid = false;
-    int nTaken = 0;
+    unsigned int nTaken = 0;
 
     for(size_t i = 0; i < batches.size(); i++) {
         if(batches[i].size() == 0) {
@@ -223,7 +223,7 @@ Warehouse generateRandomWarehouse(WarehouseInfo info, long seed) {
 //    random_device dev;
 
     mt19937 rng(seed);
-    uniform_int_distribution<std::mt19937::result_type> widthDist(0,info.aisles*2-1);
+/*    uniform_int_distribution<std::mt19937::result_type> widthDist(0,info.aisles*2-1);
     uniform_int_distribution<std::mt19937::result_type> heightDist(0,info.crossAiles);
     uniform_int_distribution<std::mt19937::result_type> heightAddDist(0,info.shelfHeight-1);
 
@@ -239,13 +239,58 @@ Warehouse generateRandomWarehouse(WarehouseInfo info, long seed) {
         }while(usedPositions.find({y,x}) != usedPositions.end());
         packageLocations[i] = {y,x};
     }
+*/
+
+    vector<Position> possiblePositions;
+    for(size_t y = 0; y < walkable.size(); y++) {
+        for(size_t x = 0; x < walkable[y].size(); x++) {
+            if(!walkable[y][x]) {
+                possiblePositions.push_back({y,x});
+            }
+        }
+    }
+
+    vector<Position> packageLocations;
+    packageLocations.reserve(info.packages);
+    Position startDrop{0, walkable.front().size() / 2};
+    size_t maxLen = walkable.size() + startDrop.second;
+    vector<Position> A, B, C;
+    for(size_t i = 0; i < possiblePositions.size(); i++) {
+        size_t manhattan = std::abs(startDrop.first - possiblePositions[i].first) + std::abs(startDrop.second - possiblePositions[i].second);
+        if(manhattan * 100 > maxLen * 60) {
+            // Super far away
+            C.push_back(possiblePositions[i]);
+        } else if(manhattan * 100 > maxLen * 40) {
+            // Almost super far away
+            B.push_back(possiblePositions[i]);
+        } else {
+            A.push_back(possiblePositions[i]);
+        }
+    }
+    uniform_int_distribution<std::mt19937::result_type> Adist(0, A.size()-1);
+    uniform_int_distribution<std::mt19937::result_type> Bdist(0, B.size()-1);
+    uniform_int_distribution<std::mt19937::result_type> Cdist(0, C.size()-1);
+
+    for(size_t i = 0; i < info.packages * 0.6; i++) {
+        auto pos = A[Adist(rng)];
+        packageLocations.push_back(pos);
+    }
+    for(size_t i = 0; i < info.packages * 0.25; i++) {
+        auto pos = B[Bdist(rng)];
+        packageLocations.push_back(pos);
+    }
+    while(packageLocations.size() < static_cast<size_t>(info.packages)) {
+        auto pos = C[Cdist(rng)];
+        packageLocations.push_back(pos);
+    }
+
 //    for(int i = 0; i < packageLocations.size(); i++) {
 //        cout << packageLocations[i].first << ", " << packageLocations[i].second<< endl;
 //    }
-    return Warehouse(walkable, packageLocations);
+    return Warehouse(walkable, packageLocations, startDrop);
 }
 
-Warehouse::Warehouse(vector<vector<bool>> walkable, vector<Position> packageLocations) : walkable(walkable), packageLocations(packageLocations) {
+Warehouse::Warehouse(vector<vector<bool>> walkable, vector<Position> packageLocations, Position startDrop) : drop(startDrop), start(startDrop), walkable(walkable), packageLocations(packageLocations) {
     this->height = walkable.size();
     this->width = walkable[0].size();
     this->drop = {0,0};

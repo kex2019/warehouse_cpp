@@ -266,7 +266,6 @@ void tabu::BISwapper::step(int t) {
 
 vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
     int lifeTime = 100;
-    int nOrders = warehouse.getPackageLocations().size();
     cw::cw c;
     auto sol = c.solve(nRobots, robotCapacity, warehouse);
     vector<SmallVector<PackID>> solution(sol.size());
@@ -283,7 +282,6 @@ vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const W
 
     int bestSolutionScore = evaluateSolutionTime(warehouse, bestSolution, nRobots, robotCapacity);
     int t = 0;
-    int maxN = 5 * nOrders;
 
     BISwapperSmall swp(lifeTime, robotCapacity);
     clock_t avgclock = 0;
@@ -548,7 +546,6 @@ vector<vector<PackID>> tabu::OldTabu::solve(int nRobots, int robotCapacity, cons
         t++;
         tabus.step(t);
         OldSwapGenerator gen(solution);
-        int nChecked = 0;
         int quality = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
         vector<vector<PackID>> nextBestSolution = solution;
         int nextBestQuality = quality;

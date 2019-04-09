@@ -78,7 +78,7 @@ class Warehouse {
     vector<vector<int>> pathLengthBetween; // path lengths between packages, starting at index 2. Index 0 and 1 are for start and drop
     vector<vector<int>> calcPathLengthFrom(Position a);
 public:
-    Warehouse(vector<vector<bool>> walkable, vector<Position> packageLocations);
+    Warehouse(vector<vector<bool>> walkable, vector<Position> packageLocations, Position startDrop = Position());
     /*
         Expects this to index into packageLocation. (0 in idxSeq -> 0 in packageLocation)
         The sequence automaticaly starts at start and ends at drop.
