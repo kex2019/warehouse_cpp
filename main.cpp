@@ -280,7 +280,6 @@ int main() {
     auto cmps = run(complsearch, complsearch::complsearch(), params_mini, seeds);
     auto cws = run(cwsr, cw::cw(), params, seeds);
     auto greedys = run(greedyr, greedy::greedy(), params, seeds);
-    auto oldtabu = run(tabuold, OT, params, seeds);
     auto tabu = run(tabur, T, params, seeds);
     auto ga = run(gar, G, params, seeds);
 /*
