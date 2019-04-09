@@ -10,6 +10,7 @@
 #include "algos/greedy.h"
 #include "algos/ga.h"
 #include "algos/tabu.h"
+#include "algos/complsearch.h"
 
 
 vector<long> generateSeeds(int N) {
@@ -192,7 +193,7 @@ int main() {
     info_xs.crossAiles = 2;
     info_xs.crossAilesWidth = 2;
     info_xs.shelfHeight = 10;
-    info_xs.packages = 20;
+    info_xs.packages = 10;
 
     WarehouseInfo info_s;
     info_s.aisles = 4;
@@ -241,7 +242,7 @@ int main() {
     info_xxxl.crossAiles = 4;
     info_xxxl.crossAilesWidth = 3;
     info_xxxl.shelfHeight = 20;
-    info_xxxl.packages = 800;
+    info_xxxl.packages = 1024;
 
 //    tst(info_xxxl);
 //    tst2(info_xxxl);
@@ -249,30 +250,37 @@ int main() {
 
     // WarehouseInfo, nRobots, robotCapacity
     vector<tuple<WarehouseInfo, int, int>> params{
-        {info_xs, 4, 5},
+        {info_xs, 2, 5},
         {info_s, 8, 5},
-        {info_m, 16, 8},
+        {info_m, 16, 5},
         {info_l, 32, 5},
         {info_xl, 64, 5},
         {info_xxl, 128, 5},
-        {info_xxxl, 100, 8},
+        {info_xxxl, 205, 5},
+    };
+
+    vector<tuple<WarehouseInfo, int, int>> params_mini{
+      {info_xs, 2, 5},
     };
 
     // TODO Run with many more generations and bigger population size
     tabu::StopCondition stop(80000, 250);
     auto G = ga::Ga(500, 1000, 1.0, 1.0);
     auto T = tabu::Tabu(stop);
-    ResultHandler cwsr("results", "cws");
-    ResultHandler greedyr("results", "greedy");
-    ResultHandler gar("results", "ga");
-    ResultHandler tabur("results", "tabu");
 
-    auto seeds = generateSeeds(20);
+    ResultHandler complsearch("results", "complsearch");
+    //ResultHandler cwsr("results", "cws");
+    //ResultHandler greedyr("results", "greedy");
+    ResultHandler gar("results", "ga");
+    //ResultHandler tabur("results", "tabu");
+
+    auto seeds = generateSeeds(10);
     
-    auto cws = run(cwsr, cw::cw(), params, seeds);
-    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
-    auto tabu = run(tabur, T, params, seeds);
-    auto ga = run(gar, G, params, seeds);
+    auto cmps = run(complsearch, complsearch::complsearch(), params_mini, seeds);
+    //auto cws = run(cwsr, cw::cw(), params, seeds);
+    //auto greedys = run(greedyr, greedy::greedy(), params, seeds);
+    //auto tabu = run(tabur, T, params, seeds);
+    auto ga = run(gar, G, params_mini, seeds);
 /*
     int accCWS = 0;
     int accGreedys = 0;
