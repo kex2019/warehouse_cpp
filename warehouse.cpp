@@ -260,7 +260,7 @@ Warehouse generateRandomWarehouse(WarehouseInfo info, long seed) {
         if(manhattan * 100 > maxLen * 60) {
             // Super far away
             C.push_back(possiblePositions[i]);
-        } else if(manhattan * 100 > maxLen * 40) {
+        } else if(manhattan * 100 > maxLen * 38) {
             // Almost super far away
             B.push_back(possiblePositions[i]);
         } else {
