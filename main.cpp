@@ -269,17 +269,17 @@ int main() {
     auto T = tabu::Tabu(stop);
 
     ResultHandler complsearch("results", "complsearch");
-    //ResultHandler cwsr("results", "cws");
-    //ResultHandler greedyr("results", "greedy");
+    ResultHandler cwsr("results", "cws");
+    ResultHandler greedyr("results", "greedy");
     ResultHandler gar("results", "ga");
-    //ResultHandler tabur("results", "tabu");
+    ResultHandler tabur("results", "tabu");
 
     auto seeds = generateSeeds(10);
     
     auto cmps = run(complsearch, complsearch::complsearch(), params_mini, seeds);
-    //auto cws = run(cwsr, cw::cw(), params, seeds);
-    //auto greedys = run(greedyr, greedy::greedy(), params, seeds);
-    //auto tabu = run(tabur, T, params, seeds);
+    auto cws = run(cwsr, cw::cw(), params_mini, seeds);
+    auto greedys = run(greedyr, greedy::greedy(), params_mini, seeds);
+    auto tabu = run(tabur, T, params_mini, seeds);
     auto ga = run(gar, G, params_mini, seeds);
 /*
     int accCWS = 0;
