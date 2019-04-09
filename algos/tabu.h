@@ -158,12 +158,30 @@ namespace tabu {
         }
     };
 
-
+    class OldSwapGenerator {
+        int currentFirst = 0;
+        int currentSecond = 0;
+        int currentFirstOrder = 0;
+        int currentSecondOrder = 0;
+        bool isEof = false;
+    public:
+        vector<vector<PackID>> solution;
+        OldSwapGenerator(const vector<vector<PackID>> &solution) : solution(solution){}
+        vector<vector<PackID>> next();
+        bool eof();
+        tuple<int,int,int,int> getMove();
+    };
 
     struct Tabu {
         StopCondition stop;
         Tabu(StopCondition stop) : stop(stop) {}
         vector<vector<PackID>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse);
+    };
+
+    struct OldTabu {
+        StopCondition stop;
+        OldTabu(StopCondition stop) : stop(stop) {}
+        vector<vector<PackID>> solve(int robots, int robotCapacity, const Warehouse &warehouse);
     };
 
 }

@@ -265,7 +265,7 @@ void tabu::BISwapper::step(int t) {
 
 
 vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
-    int lifeTime = 10;
+    int lifeTime = 100;
     int nOrders = warehouse.getPackageLocations().size();
     cw::cw c;
     auto sol = c.solve(nRobots, robotCapacity, warehouse);
@@ -475,4 +475,137 @@ pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmall::doBestMove(int t, c
 
 void tabu::BISwapperSmall::step(int t) {
     tabus.step(t);
+}
+
+
+vector<vector<PackID>> tabu::OldSwapGenerator::next() {
+    if (isEof) {
+        throw runtime_error("Tried to get next when nswapgenerator has reached eof");
+    }
+
+    // Swap back to the initial state
+    swap(solution[currentFirst][currentFirstOrder], solution[currentSecond][currentSecondOrder]);
+    currentSecondOrder++;
+    if(currentSecondOrder == solution[currentSecond].size()) {
+        currentFirstOrder++;
+        currentSecondOrder = 0;
+    }
+    if(currentFirstOrder == solution[currentFirst].size()){
+        // We want to go to the next second element
+        currentSecond++;
+        currentFirstOrder = 0;
+        currentSecondOrder = 0;
+    }
+    if(currentSecond == currentFirst) {
+        currentSecond++;
+    }
+    if(currentSecond >= solution.size()) {
+        currentFirst++;
+        currentSecond = 0;
+    }
+    if(currentFirst >= solution.size()) {
+        isEof = true;
+        return solution; // Return initial solution
+    }
+
+    // Swap the orders, 
+    swap(solution[currentFirst][currentFirstOrder], solution[currentSecond][currentSecondOrder]);
+    if(currentFirst == solution.size() - 1 && currentSecond == solution.size() - 2 && currentFirstOrder == solution[currentFirst].size() - 1 && currentSecondOrder == solution[currentSecond].size()) {
+        // This is the last order that will be processed
+        isEof = true;
+    }
+
+    return solution;
+}
+
+tuple<int,int,int,int> tabu::OldSwapGenerator::getMove() {
+    int a, b;
+    a = currentFirst >= currentSecond ? currentFirst : currentSecond;
+    b = currentFirst < currentSecond ? currentSecond : currentFirst;
+    int c, d;
+    c = currentFirstOrder >= currentSecondOrder ? currentFirstOrder : currentSecondOrder;
+    d = currentFirstOrder < currentSecondOrder ? currentSecondOrder : currentFirstOrder;
+    return {a, b, c, d};
+}
+
+bool tabu::OldSwapGenerator::eof() {
+    return isEof;
+}
+
+
+vector<vector<PackID>> tabu::OldTabu::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
+    int lifeTime = 10;
+    int nOrders = warehouse.getPackageLocations().size();
+    TabuList<tuple<int,int,int,int>> tabus(lifeTime);
+    cw::cw c;
+    auto solution = c.solve(nRobots, robotCapacity, warehouse);
+    vector<vector<PackID>> bestSolution = solution;
+    int bestSolutionScore = evaluateSolutionTime(warehouse, bestSolution, nRobots, robotCapacity);
+    int t = 0;
+    
+    this->stop.start();
+    while(!this->stop.isDone(true)) {
+        t++;
+        tabus.step(t);
+        OldSwapGenerator gen(solution);
+        int nChecked = 0;
+        int quality = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
+        vector<vector<PackID>> nextBestSolution = solution;
+        int nextBestQuality = quality;
+        bool switched = false;
+        int nSinceSwitch = 0;
+        int nCheckedN = 0;
+        tuple<int,int,int,int> bestMove;
+
+        bool foundBetter = false;
+        while(!gen.eof()) {
+            if(switched && nSinceSwitch > nOrders && nCheckedN > 4 * nOrders) {
+                break; // Checked enough since we found a better one.
+            }
+            nCheckedN++;
+
+            auto next = gen.next();
+            // Check it's not on tabu
+            auto move = gen.getMove();
+            if(tabus.isTabu(move)) {
+                // Can't make this move, move on to the next one
+                continue;
+            }
+
+            if(switched) {
+                nSinceSwitch++;
+
+            }
+            int nextQuality = evaluateSolutionTime(warehouse, next, nRobots, robotCapacity);
+            if(quality * 105 > nextQuality * 100) {
+                if(switched && nextBestQuality > nextQuality) {
+                    nextBestQuality = nextQuality;
+                    nextBestSolution = next;
+                    bestMove = move;
+                } else if (!switched) {
+                    switched = true;
+                    nextBestQuality = nextQuality;
+                    nextBestSolution = next;
+                    bestMove = move;
+                    foundBetter = true;
+                }
+            }
+        }
+
+        if(!foundBetter) {
+            // Actually want to grab a tabu move, for now just kill everything
+            break;
+        }
+
+        // Replace our solution with this one.
+        tabus.insertTabu(t, bestMove);
+        if(nextBestQuality < bestSolutionScore) {
+            bestSolutionScore = nextBestQuality;
+            bestSolution = nextBestSolution;
+        }
+
+        solution = nextBestSolution;
+    }
+
+    return bestSolution;
 }

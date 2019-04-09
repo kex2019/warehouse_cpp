@@ -264,23 +264,24 @@ int main() {
     };
 
     // TODO Run with many more generations and bigger population size
-    tabu::StopCondition stop(80000, 250);
+    //tabu::StopCondition stop(80000, 250);
+    tabu::StopCondition stop(10000, 250);
     auto G = ga::Ga(500, 1000, 1.0, 1.0);
     auto T = tabu::Tabu(stop);
-
+    auto OT = tabu::OldTabu(stop);
     ResultHandler complsearch("results", "complsearch");
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
     ResultHandler gar("results", "ga");
     ResultHandler tabur("results", "tabu");
+    ResultHandler tabuold("results", "old-tabu");
 
-    auto seeds = generateSeeds(10);
-    
+    auto seeds = generateSeeds(20);    
     auto cmps = run(complsearch, complsearch::complsearch(), params_mini, seeds);
-    auto cws = run(cwsr, cw::cw(), params_mini, seeds);
-    auto greedys = run(greedyr, greedy::greedy(), params_mini, seeds);
-    auto tabu = run(tabur, T, params_mini, seeds);
-    auto ga = run(gar, G, params_mini, seeds);
+    auto cws = run(cwsr, cw::cw(), params, seeds);
+    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
+    auto tabu = run(tabur, T, params, seeds);
+    auto ga = run(gar, G, params, seeds);
 /*
     int accCWS = 0;
     int accGreedys = 0;
