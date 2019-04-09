@@ -40,33 +40,33 @@ L = {
 
 XL = {
     "aisles": 32,
-    "aisleWidth": 2,
-    "crossAiles": 2,
-    "crossAilesWidth": 2,
+    "aisleWidth": 3,
+    "crossAiles": 3,
+    "crossAilesWidth": 3,
     "shelfHeight": 20,
     "packages": 320,
 }
 
 XXL = {
     "aisles": 64,
-    "aisleWidth": 2,
-    "crossAiles": 2,
-    "crossAilesWidth": 2,
+    "aisleWidth": 3,
+    "crossAiles": 3,
+    "crossAilesWidth": 3,
     "shelfHeight": 20,
     "packages": 640
 }
 
 XXXL = {
-    "aisles": 80,
-    "aisleWidth": 2,
-    "crossAiles": 2,
-    "crossAilesWidth": 2,
+    "aisles": 100,
+    "aisleWidth": 3,
+    "crossAiles": 4,
+    "crossAilesWidth": 3,
     "shelfHeight": 20,
     "packages": 800
 }
 
 
-def viz_wh(info: "WarehouseInfo"):
+def viz_wh(info: "WarehouseInfo", name, show=True):
 
     if info["crossAilesWidth"] < 2:
         info["crossAilesWidth"] = 2
@@ -108,8 +108,20 @@ def viz_wh(info: "WarehouseInfo"):
 
     imResize = cv2.resize(
         image, (int(imX), int(imY)), interpolation=cv2.INTER_NEAREST)
+
+    plt.axis('off')
+    plt.margins(0, 0)
+    plt.title(name)
     plt.imshow(imResize)
+    plt.savefig(
+        "plots/outputs/%s.pdf" % name, bbox_inches='tight', pad_inches=0)
     plt.show()
 
 
-viz_wh(XXXL)
+viz_wh(XS, name="XS", show=True)
+viz_wh(S, name="S", show=True)
+viz_wh(M, name="M", show=True)
+viz_wh(L, name="L", show=True)
+viz_wh(XL, name="XL", show=True)
+viz_wh(XXL, name="XXL", show=True)
+viz_wh(XXXL, name="XXXL", show=True)
