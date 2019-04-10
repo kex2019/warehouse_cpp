@@ -284,13 +284,16 @@ Warehouse generateRandomWarehouse(WarehouseInfo info, long seed) {
         packageLocations.push_back(pos);
     }
 
+
+    shuffle(packageLocations.begin(), packageLocations.end(), std::default_random_engine(seed));
+
 //    for(int i = 0; i < packageLocations.size(); i++) {
 //        cout << packageLocations[i].first << ", " << packageLocations[i].second<< endl;
 //    }
-    return Warehouse(walkable, packageLocations, startDrop);
+    return Warehouse(seed, walkable, packageLocations, startDrop);
 }
 
-Warehouse::Warehouse(vector<vector<bool>> walkable, vector<Position> packageLocations, Position startDrop) : drop(startDrop), start(startDrop), walkable(walkable), packageLocations(packageLocations) {
+Warehouse::Warehouse(long seed, vector<vector<bool>> walkable, vector<Position> packageLocations, Position startDrop) : seed(seed), drop(startDrop), start(startDrop), walkable(walkable), packageLocations(packageLocations) {
     this->height = walkable.size();
     this->width = walkable[0].size();
     this->drop = {0,0};
