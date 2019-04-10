@@ -284,6 +284,9 @@ Warehouse generateRandomWarehouse(WarehouseInfo info, long seed) {
         packageLocations.push_back(pos);
     }
 
+
+    shuffle(packageLocations.begin(), packageLocations.end(), std::default_random_engine(seed));
+
 //    for(int i = 0; i < packageLocations.size(); i++) {
 //        cout << packageLocations[i].first << ", " << packageLocations[i].second<< endl;
 //    }
