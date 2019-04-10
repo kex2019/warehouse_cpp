@@ -22,6 +22,25 @@ namespace tabu {
                 tabus.erase(tabus.begin());
             }
         }
+        void removeTabu(T t) {
+            for(size_t i = 0; i < tabus.size(); i++) {
+                if(tabus[i].second == t) {
+                    tabus.erase(tabus.begin() + i);
+                    break;
+                }
+            }
+            tabusOrdered.erase(t);
+        }
+        T pop() {
+            // Remove first tabu
+            T tabu = tabus.front().second;
+            tabusOrdered.erase(tabu);
+            tabus.erase(tabus.begin());
+            return tabu;
+        }
+        bool empty(){
+            return tabusOrdered.empty();
+        }
         // Assumes that t[i + 1] >= t[i]
         void insertTabu(int t, T tabu) {
             tabus.push_back({lifeTime + t, tabu});

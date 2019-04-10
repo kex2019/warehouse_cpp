@@ -281,16 +281,16 @@ int main() {
     ResultHandler tabur("results", "tabu");
     ResultHandler tabuoldr("results", "old-tabu");
 
-    auto seeds = generateSeeds(20);    
-    auto cws = run(cwsr, cw::cw(), params, seeds);
+    auto seeds = generateSeeds(5);
+/*    auto cws = run(cwsr, cw::cw(), params, seeds);
     auto cmps = run(complsearch, complsearch::complsearch(), params_mini, seeds);
-    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
+*/    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
     auto tabu = run(tabur, T, params, seeds);
     auto tabuold = run(tabuoldr, OT, params, seeds);
-    auto gabal = run(gabalr, GaBal, params, seeds);
+/*    auto gabal = run(gabalr, GaBal, params, seeds);
     auto gaevo = run(gaevor, GaEvo, params, seeds);
     auto gapop = run(gapopr, GaPop, params, seeds);
-
+*/
 /*
     int accCWS = 0;
     int accGreedys = 0;
