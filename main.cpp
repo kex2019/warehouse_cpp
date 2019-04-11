@@ -307,8 +307,8 @@ int main() {
         {info_m, 16, 5},
         {info_l, 32, 5},
         {info_xl, 64, 5},
-//        {info_xxl, 128, 5},
-//        {info_xxxl, 205, 5},
+        {info_xxl, 128, 5},
+        {info_xxxl, 205, 5},
     };
 
     vector<tuple<WarehouseInfo, int, int>> params_mini{
@@ -318,12 +318,14 @@ int main() {
     // TODO Run with many more generations and bigger population size
     //tabu::StopCondition stop(80000, 250);
     tabu::StopCondition stop(10000, 60);
+    tabu::StopCondition stopheuristic(100000, 60); // The heuristic is so much faster we can do way more iterations. 100000 takes about 35-37 seconds
+
     auto GaBal = ga::Ga(500, 1000, 1.0, 1.0);
     auto GaEvo = ga::Ga(250, 1500, 1.0, 1.0);
     auto GaPop = ga::Ga(1000, 500, 1.0, 1.0);
     auto T = tabu::Tabu(stop);
     auto OT = tabu::OldTabu(stop);
-    auto TH = tabu::TabuHeuristic(stop);
+    auto TH = tabu::TabuHeuristic(stopheuristic);
 
     ResultHandler complsearch("results", "complsearch");
     ResultHandler cwsr("results", "cws");
@@ -339,16 +341,16 @@ int main() {
 
 //    tstgeneration(info_l, seeds);
 //    return 0;
-    auto cws = run(cwsr, cw::cw(), params, seeds);
+    /*auto cws = run(cwsr, cw::cw(), params, seeds);
     auto cmps = run(complsearch, complsearch::complsearch(), params_mini, seeds);
     auto greedys = run(greedyr, greedy::greedy(), params, seeds);
     auto tabu = run(tabur, T, params, seeds);
-    auto tabuold = run(tabuoldr, OT, params, seeds);
+    auto tabuold = run(tabuoldr, OT, params, seeds);*/
     auto tabuheur = run(tabuh, TH, params, seeds);
-    auto gabal = run(gabalr, GaBal, params, seeds);
+/*    auto gabal = run(gabalr, GaBal, params, seeds);
     auto gaevo = run(gaevor, GaEvo, params, seeds);
     auto gapop = run(gapopr, GaPop, params, seeds);
-
+*/
 /*
     int accCWS = 0;
     int accGreedys = 0;
