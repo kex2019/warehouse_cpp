@@ -307,8 +307,8 @@ int main() {
         {info_m, 16, 5},
         {info_l, 32, 5},
         {info_xl, 64, 5},
-        //{info_xxl, 128, 5},
-        //{info_xxxl, 205, 5},
+        {info_xxl, 128, 5},
+        {info_xxxl, 205, 5},
     };
 
     vector<tuple<WarehouseInfo, int, int>> params_mini{
