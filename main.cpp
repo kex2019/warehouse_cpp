@@ -333,7 +333,7 @@ int main() {
     ResultHandler tabur("results", "tabu");
     ResultHandler tabuoldr("results", "old-tabu");
 
-    auto seeds = generateSeeds(5);
+    auto seeds = generateSeeds(20);
 
 //    tstgeneration(info_l, seeds);
 //    return 0;
