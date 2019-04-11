@@ -155,6 +155,21 @@ namespace tabu {
         pair<int, vector<SmallVector<PackID>>> doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<PackID>>& solution);
         void step(int t);
     };
+    class BISwapperSmallHeuristic {
+        int capacity = 10;
+        TabuList<tuple<int,int,int,int>> tabus;
+        TabuList<tuple<int,int,int>> pushTabus;
+        int nRobots;
+
+        tuple<int,int,int,int> moveToTuple(int fb, int sb, int fo, int so);
+        tuple<int,int,int> movePushToTuple(int fb, int sb, int o);
+
+    public:
+        BISwapperSmallHeuristic(int lifeTime, int capacity, int nRobots) : capacity(capacity), tabus(lifeTime), pushTabus(lifeTime), nRobots(nRobots){}
+        pair<int, vector<SmallVector<PackID>>> doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<PackID>>& solution);
+        void step(int t);
+    };
+
     class StopCondition {
         unsigned long maxIterations = -1;
         unsigned long maxTimeSeconds = -1;
@@ -195,6 +210,12 @@ namespace tabu {
     struct Tabu {
         StopCondition stop;
         Tabu(StopCondition stop) : stop(stop) {}
+        vector<vector<PackID>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse);
+    };
+
+    struct TabuHeuristic {
+        StopCondition stop;
+        TabuHeuristic(StopCondition stop) : stop(stop) {}
         vector<vector<PackID>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse);
     };
 

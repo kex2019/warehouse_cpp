@@ -307,8 +307,8 @@ int main() {
         {info_m, 16, 5},
         {info_l, 32, 5},
         {info_xl, 64, 5},
-        {info_xxl, 128, 5},
-        {info_xxxl, 205, 5},
+//        {info_xxl, 128, 5},
+//        {info_xxxl, 205, 5},
     };
 
     vector<tuple<WarehouseInfo, int, int>> params_mini{
@@ -323,6 +323,7 @@ int main() {
     auto GaPop = ga::Ga(1000, 500, 1.0, 1.0);
     auto T = tabu::Tabu(stop);
     auto OT = tabu::OldTabu(stop);
+    auto TH = tabu::TabuHeuristic(stop);
 
     ResultHandler complsearch("results", "complsearch");
     ResultHandler cwsr("results", "cws");
@@ -332,6 +333,7 @@ int main() {
     ResultHandler gapopr("results", "ga-pop");
     ResultHandler tabur("results", "tabu");
     ResultHandler tabuoldr("results", "old-tabu");
+    ResultHandler tabuh("results", "tabu-heuristic");
 
     auto seeds = generateSeeds(20);
 
@@ -342,6 +344,7 @@ int main() {
     auto greedys = run(greedyr, greedy::greedy(), params, seeds);
     auto tabu = run(tabur, T, params, seeds);
     auto tabuold = run(tabuoldr, OT, params, seeds);
+    auto tabuheur = run(tabuh, TH, params, seeds);
     auto gabal = run(gabalr, GaBal, params, seeds);
     auto gaevo = run(gaevor, GaEvo, params, seeds);
     auto gapop = run(gapopr, GaPop, params, seeds);

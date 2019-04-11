@@ -267,7 +267,7 @@ vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const W
     int lifeTime = 100;
     cw::cw c;
     auto sol = c.solve(nRobots, robotCapacity, warehouse);
-    int soltime = evaluateSolutionTime(warehouse, sol, nRobots, robotCapacity);
+    //int soltime = evaluateSolutionTime(warehouse, sol, nRobots, robotCapacity);
 
     vector<SmallVector<PackID>> solution(sol.size());
     for(size_t i = 0; i < sol.size(); i++) {
@@ -295,7 +295,66 @@ vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const W
         int nextBestQuality = quality;
         // Replace our solution with this one.
         auto moveres = swp.doBestMove(t, warehouse, solution);
-        int realQual = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
+        //int realQual = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
+
+        nextBestQuality = quality - moveres.first;
+        nextBestSolution = moveres.second;
+        if(nextBestQuality < bestSolutionScore) {
+            bestSolutionScore = nextBestQuality;
+            bestSolution = nextBestSolution;
+        }
+
+        solution = nextBestSolution;
+        avgclock = (avgclock * N + (clock() - start)) / (N + 1);
+        N++;
+    }
+
+    double avgms = (double)avgclock / (double)CLOCKS_PER_SEC;
+    cout << "TOOK an avarage of: " << avgms << " to process, total: " << ((double)(clock() - totclock)/ (double)CLOCKS_PER_SEC) << endl;
+
+    vector<vector<PackID>> convertedVec(sol.size());
+    for(size_t i = 0; i < bestSolution.size(); i++) {
+        for(size_t j = 0; j < bestSolution[i].size(); j++) {
+            convertedVec[i].push_back(bestSolution[i][j]);
+        }
+    }
+
+    return convertedVec;
+}
+
+vector<vector<PackID>> tabu::TabuHeuristic::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
+    int lifeTime = 100;
+    cw::cw c;
+    auto sol = c.solve(nRobots, robotCapacity, warehouse);
+    //int soltime = evaluateSolutionTime(warehouse, sol, nRobots, robotCapacity);
+
+    vector<SmallVector<PackID>> solution(sol.size());
+    for(size_t i = 0; i < sol.size(); i++) {
+        for(size_t j = 0; j < sol[i].size(); j++) {
+            solution[i].push_back(sol[i][j]);
+        }
+    }
+
+    vector<SmallVector<PackID>> bestSolution = solution;
+
+    int bestSolutionScore = evaluateSolutionTime(warehouse, bestSolution, nRobots, robotCapacity);
+    int t = 0;
+
+    BISwapperSmallHeuristic swp(lifeTime, robotCapacity, nRobots);
+    clock_t avgclock = 0;
+    int N = 0;
+    clock_t totclock = clock();
+    this->stop.start();
+    while(!this->stop.isDone(true)) {
+        t++;
+        clock_t start = clock();
+        swp.step(t);
+        int quality = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
+        vector<SmallVector<PackID>> nextBestSolution = solution;
+        int nextBestQuality = quality;
+        // Replace our solution with this one.
+        auto moveres = swp.doBestMove(t, warehouse, solution);
+        //int realQual = evaluateSolutionTime(warehouse, solution, nRobots, robotCapacity);
 
         nextBestQuality = quality - moveres.first;
         nextBestSolution = moveres.second;
@@ -329,7 +388,6 @@ vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const W
 
 
 
-
 tuple<int,int,int> tabu::BISwapperSmall::movePushToTuple(int fb, int sb, int o) {
     return tuple<int,int,int>(fb, sb, o);
 }
@@ -342,6 +400,125 @@ tuple<int,int,int,int> tabu::BISwapperSmall::moveToTuple(int fb, int sb, int fo,
     return tuple<int,int,int,int>(a, b, c, d);
 }
 
+tuple<int,int,int> tabu::BISwapperSmallHeuristic::movePushToTuple(int fb, int sb, int o) {
+    return tuple<int,int,int>(fb, sb, o);
+}
+
+tuple<int,int,int,int> tabu::BISwapperSmallHeuristic::moveToTuple(int fb, int sb, int fo, int so) {
+    int a = fb > sb ? fb : sb;
+    int b = a == fb ? sb : fb;
+    int c = a == fb ? fo : so;
+    int d = c == fo ? so : fo;
+    return tuple<int,int,int,int>(a, b, c, d);
+}
+
+void tabu::BISwapperSmallHeuristic::step(int t) {
+    tabus.step(t);
+}
+
+pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmallHeuristic::doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<PackID>>& solution) {
+    int bestFirstBatch = -1;
+    int bestSecondBatch = -1;
+    int bestFirstOrder = -1;
+    int bestSecondOrder = -1;
+    int bestIncrease = -1e6;
+    const int originalTime = evaluateSolutionTime(warehouse, solution, nRobots, capacity);
+
+    set<int, greater<>> times;
+    int maxTime = -1;
+    int maxTimeIndex = -1;
+    for(size_t i = 0; i < solution.size(); i++) {
+        int t = warehouse.getTimeForSequence(solution[i]);
+        if(t > maxTime) {
+            maxTimeIndex = i;
+            maxTime = t;
+        }
+        times.insert(t);
+    }
+
+    times.erase(times.begin());
+    for(size_t i = 0; i < solution.size(); ++i) {
+        if(!solution[i].size()) {
+            continue;
+        }
+
+        // Swap maxTimeIndex and i
+        for(size_t io = 0; io < solution[i].size(); ++io) {
+            for(size_t jo = 0; jo < solution[maxTimeIndex].size(); ++jo) {
+                if(tabus.isTabu(moveToTuple(i,maxTimeIndex,io,jo))) {
+                    continue;
+                }
+
+                swap(solution[i][io], solution[maxTimeIndex][jo]);
+//                    const int newTime = warehouse.getTimeForSequence(solution[i]) + warehouse.getTimeForSequence(solution[j]);
+ //               int newTime = evaluateSolutionTime(warehouse, solution, nRobots, capacity);
+                int newMaxTime = std::max(warehouse.getTimeForSequence(solution[maxTimeIndex]), warehouse.getTimeForSequence(solution[i]));
+                // TODO: Fix this increase calculation up
+                int increase = *times.begin() - newMaxTime;
+                //int originalTime = maxTime;
+                if(increase > bestIncrease) {
+                    bestIncrease = increase;
+//                        cout <<  "Tabu: Gen step: " << originalTime << ", " << newTime << ", bi: " << bestIncrease << endl;
+                    bestFirstBatch = i;
+                    bestSecondBatch = maxTimeIndex;
+                    bestFirstOrder = io;
+                    bestSecondOrder = jo;
+                }
+                swap(solution[i][io], solution[maxTimeIndex][jo]);
+            }
+        }
+    }
+
+    int bestFirstBatchPush = -1;
+    int bestOrderPush = -1;
+    int bestSecondBatchPush = -1;
+
+
+    if(bestFirstBatch == -1 && bestFirstBatchPush == -1) {
+        // Check tabu moves...
+        if(!tabus.empty()) {
+            auto t = tabus.pop();
+            int fb = get<0>(t), fo = get<2>(t), sb = get<1>(t), so = get<3>(t);
+            bestFirstBatch = fb;
+            bestSecondBatch = sb;
+            bestFirstOrder = fo;
+            bestSecondOrder = so;
+            swap(solution[fb][fo], solution[sb][so]);
+            int newTime = evaluateSolutionTime(warehouse, solution, nRobots, capacity);
+            swap(solution[fb][fo], solution[sb][so]);
+            bestIncrease = originalTime - newTime;
+        } else {
+            cerr << "Could not find any move in tabu list..." << endl;
+            return {bestIncrease, solution};
+        }
+    }
+
+    if(bestFirstBatchPush == -1){
+        swap(solution[bestFirstBatch][bestFirstOrder], solution[bestSecondBatch][bestSecondOrder]);
+        tabus.insertTabu(t, moveToTuple(bestFirstBatch, bestSecondBatch, bestFirstOrder, bestSecondOrder));
+        //cout << "           Tabu: swapping: (" << bestFirstBatch << ", " << bestFirstOrder << ") and (" << bestSecondBatch << ", " << bestSecondOrder << "), gain: " << bestIncrease << endl;
+        return {bestIncrease, solution};
+    } else {
+        auto c = solution[bestFirstBatchPush][bestOrderPush];
+        solution[bestSecondBatchPush].push_back(c);
+
+        SmallVector<PackID> newi;
+        for(size_t i = 0; i < solution[bestFirstBatchPush].size(); i++) {
+            if(static_cast<int>(i) != bestOrderPush) {
+                newi.push_back(solution[bestFirstBatchPush][i]);
+            }
+        }
+        solution[bestFirstBatchPush] = newi;
+
+        pushTabus.insertTabu(t, movePushToTuple(bestFirstBatchPush, bestSecondBatchPush, bestOrderPush));
+        pushTabus.insertTabu(t, movePushToTuple(bestSecondBatchPush, bestFirstBatchPush, solution[bestSecondBatchPush].size() - 1));        
+        //cout << "           Tabu: Pushing: (" << bestFirstBatchPush << ", " << bestOrderPush << ") to " << bestSecondBatchPush << ", gain: " << bestIncrease << endl;
+        return {bestIncrease, solution};
+    }
+
+}
+
+
 pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmall::doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<PackID>>& solution) {
     int bestFirstBatch = -1;
     int bestSecondBatch = -1;
@@ -349,6 +526,8 @@ pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmall::doBestMove(int t, c
     int bestSecondOrder = -1;
     int bestIncrease = -1e6;
     const int originalTime = evaluateSolutionTime(warehouse, solution, nRobots, capacity);
+
+/*
     set<int, greater<>> times;
     int maxTime = -1;
     int maxTimeIndex = -1;
@@ -399,32 +578,23 @@ pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmall::doBestMove(int t, c
     int bestSecondBatchPush = -1;
 
 
-        if(bestFirstBatch == -1 && bestFirstBatchPush == -1) {
-//        cout << "Could not find best increase...";
+    if(bestFirstBatch == -1 && bestFirstBatchPush == -1) {
         // Check tabu moves...
-        while(!tabus.empty()) {
+        if(!tabus.empty()) {
             auto t = tabus.pop();
             int fb = get<0>(t), fo = get<2>(t), sb = get<1>(t), so = get<3>(t);
-//            cout << fb << ", " << fo << " -> " << sb << ", " << so << endl;
-            //int originalTime = warehouse.getTimeForSequence(solution[fb]) + warehouse.getTimeForSequence(solution[sb]);
             bestFirstBatch = fb;
             bestSecondBatch = sb;
             bestFirstOrder = fo;
             bestSecondOrder = so;
             swap(solution[fb][fo], solution[sb][so]);
-            //int newTime = warehouse.getTimeForSequence(solution[fb]) + warehouse.getTimeForSequence(solution[sb]);
             int newTime = evaluateSolutionTime(warehouse, solution, nRobots, capacity);
-/*            if(originalTime - newTime > bestIncrease) {
-                bestIncrease = originalTime - newTime;
-                bestFirstBatch = i;
-                bestSecondBatch = j;
-                bestFirstOrder = io;
-                bestSecondOrder = jo;
-            }*/
             swap(solution[fb][fo], solution[sb][so]);
             bestIncrease = originalTime - newTime;
+        } else {
+            cerr << "Could not find any move in tabu list..." << endl;
+            return {bestIncrease, solution};
         }
-//        return {bestIncrease, solution};
     }
 
     if(bestFirstBatchPush == -1){
@@ -451,7 +621,8 @@ pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmall::doBestMove(int t, c
     }
 
 
-/*
+*/
+
     for(size_t i = 0; i < solution.size(); ++i) {
         if(!solution[i].size()) {
             continue;
@@ -497,17 +668,12 @@ pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmall::doBestMove(int t, c
             continue;
         }
 
-  //      int ot1 = warehouse.getTimeForSequence(solution[i]);
         for(size_t j = 0; j < solution.size(); j++) {
             if(i == j) {
                 continue;
             }
 
             if(static_cast<int>(solution[j].size()) < this->capacity) {
-//                int ot2 = 0;
-//                if(solution[j].size() > 0) {
-//                    ot2 = warehouse.getTimeForSequence(solution[j]);
-//                }
 
                 // Push from i to j
                 for(size_t k = 0; k < solution[i].size(); k++) {
@@ -524,15 +690,8 @@ pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmall::doBestMove(int t, c
                             newi.push_back(solution[i][idx]);
                         }
                     }
-*/
-/*                    int nti = 0;
-                    if(newi.size() > 0) {
-                        nti = warehouse.getTimeForSequence(newi);
-                    }
-*/
-//                    int ntj = warehouse.getTimeForSequence(newj);
-/*                    int newTime = evaluateSolutionTime(warehouse, solution, nRobots, capacity);
-//                    int increase = (ot1 + ot2) - (nti + ntj);
+
+                    int newTime = evaluateSolutionTime(warehouse, solution, nRobots, capacity);
                     int increase = originalTime - newTime;
                     if(increase > bestIncrease) {
                         bestIncrease = increase;
@@ -562,15 +721,8 @@ pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmall::doBestMove(int t, c
             bestSecondOrder = so;
             swap(solution[fb][fo], solution[sb][so]);
             //int newTime = warehouse.getTimeForSequence(solution[fb]) + warehouse.getTimeForSequence(solution[sb]);
-            int newTime = evaluateSolutionTime(warehouse, solution, nRobots, capacity);*/
-/*            if(originalTime - newTime > bestIncrease) {
-                bestIncrease = originalTime - newTime;
-                bestFirstBatch = i;
-                bestSecondBatch = j;
-                bestFirstOrder = io;
-                bestSecondOrder = jo;
-            }*/
-/*            swap(solution[fb][fo], solution[sb][so]);
+            int newTime = evaluateSolutionTime(warehouse, solution, nRobots, capacity);
+            swap(solution[fb][fo], solution[sb][so]);
             bestIncrease = originalTime - newTime;
         }
 //        return {bestIncrease, solution};
@@ -597,7 +749,7 @@ pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmall::doBestMove(int t, c
         pushTabus.insertTabu(t, movePushToTuple(bestSecondBatchPush, bestFirstBatchPush, solution[bestSecondBatchPush].size() - 1));        
         //cout << "           Tabu: Pushing: (" << bestFirstBatchPush << ", " << bestOrderPush << ") to " << bestSecondBatchPush << ", gain: " << bestIncrease << endl;
         return {bestIncrease, solution};
-    }*/
+    }
 }
 
 void tabu::BISwapperSmall::step(int t) {
