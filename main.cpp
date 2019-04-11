@@ -135,7 +135,7 @@ void tst(WarehouseInfo info_xxxl) {
     for(int i = 0; i < N; i++) {
         cout << i << "                 \r";
         cout.flush();
-        tabu::BISwapperSmall bi(10, 8);        
+        tabu::BISwapperSmall bi(10, 8, nRobots);        
         clock_t c_start = clock();
         auto p = bi.doBestMove(0, warehouse, solution);
         clock_t c_end = clock();
@@ -148,7 +148,6 @@ void tst(WarehouseInfo info_xxxl) {
         }
         
         evaluateSolutionTime(warehouse, sol, nRobots, capcaity);
-
     }
 
     sort(clocks.begin(), clocks.end());
@@ -185,6 +184,58 @@ void tst2(WarehouseInfo info_xxxl) {
     cout << "CLOCK P95 " << p95 << ", P99: " << p99 << ", median: " << median << endl;
 }
 
+
+void tstgeneration(WarehouseInfo info, vector<long> seeds) {
+    const int N = 100;
+    int NROBOTS = 5;
+    int CAPACITY = 5;
+    for(long seed : seeds) {
+        cw::cw c;
+        Warehouse old = generateRandomWarehouse(info, seed);
+        auto sol = c.solve(NROBOTS, CAPACITY, old);
+        for(int i = 0; i < N; i++) {
+            Warehouse war = generateRandomWarehouse(info, seed);
+            auto newsol = c.solve(NROBOTS,CAPACITY,old);
+            for(int i = 0; i < war.getPathLengths().size(); i++) {
+                for(int j = 0; j < war.getPathLengths()[0].size(); j++) {
+                    if(war.getPathLengths()[i][j] != old.getPathLengths()[i][j]) {
+                        cout << "P lens" << endl;
+                        cout << war.to_string() << "\n\n is not the same as: \n" << old.to_string() << "\n\n iters: " << i << endl;
+                        return;
+                    }
+                }
+            }
+            if(sol.size() != newsol.size()) {
+                cout << "SOL SIZE" << endl;
+                cout << war.to_string() << "\n\n is not the same as: \n" << old.to_string() << "\n\n iters: " << i << endl;
+                return;
+            }
+            for(int i = 0; i < sol.size(); i++) {
+                if(sol[i].size() != newsol[i].size()) {
+                    cout << "SOL INNER SIZE" << endl;
+                    cout << war.to_string() << "\n\n is not the same as: \n" << old.to_string() << "\n\n iters: " << i << endl;
+                    return;
+                }
+                for(int j = 0; j < sol[i].size(); j++) {
+                    if(sol[i][j] != newsol[i][j]) {
+                        cout << "SOL IDX" << endl;
+                        cout << war.to_string() << "\n\n is not the same as: \n" << old.to_string() << "\n\n iters: " << i << endl;
+                        return;
+                    }
+                }
+            }
+            int orgt = evaluateSolutionTime(old, sol, NROBOTS, CAPACITY);
+            int newt = evaluateSolutionTime(war, newsol, NROBOTS, CAPACITY);
+            if(orgt != newt) {
+                cout << "TIME" << endl;
+                cout << war.to_string() << "\n\n is not the same as: \n" << old.to_string() << "\n\n iters: " << i << endl;
+                return;
+
+            }
+        }
+    }
+    cout << "All are the same " << endl;
+}
 
 int main() {
     WarehouseInfo info_xs;
@@ -244,6 +295,7 @@ int main() {
     info_xxxl.shelfHeight = 20;
     info_xxxl.packages = 1024;
 
+
 //    tst(info_xxxl);
 //    tst2(info_xxxl);
 
@@ -255,8 +307,8 @@ int main() {
         {info_m, 16, 5},
         {info_l, 32, 5},
         {info_xl, 64, 5},
-        {info_xxl, 128, 5},
-        {info_xxxl, 205, 5},
+        //{info_xxl, 128, 5},
+        //{info_xxxl, 205, 5},
     };
 
     vector<tuple<WarehouseInfo, int, int>> params_mini{
@@ -282,15 +334,18 @@ int main() {
     ResultHandler tabuoldr("results", "old-tabu");
 
     auto seeds = generateSeeds(5);
-/*    auto cws = run(cwsr, cw::cw(), params, seeds);
+
+//    tstgeneration(info_l, seeds);
+//    return 0;
+    auto cws = run(cwsr, cw::cw(), params, seeds);
     auto cmps = run(complsearch, complsearch::complsearch(), params_mini, seeds);
-*/    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
+    auto greedys = run(greedyr, greedy::greedy(), params, seeds);
     auto tabu = run(tabur, T, params, seeds);
     auto tabuold = run(tabuoldr, OT, params, seeds);
-/*    auto gabal = run(gabalr, GaBal, params, seeds);
+    auto gabal = run(gabalr, GaBal, params, seeds);
     auto gaevo = run(gaevor, GaEvo, params, seeds);
     auto gapop = run(gapopr, GaPop, params, seeds);
-*/
+
 /*
     int accCWS = 0;
     int accGreedys = 0;

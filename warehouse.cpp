@@ -103,7 +103,7 @@ int evaluateSolutionTime(const Warehouse & warehouse, const vector<vector<PackID
             invalid = true;
         }
         nTaken += batches[i].size();
-        int tseq = warehouse.getTimeForSequence(batches[i]);
+        int tseq = warehouse.getTimeForSequence(batches[i], 0, batches[i].size());
         if(nRobots > earliestRobots.size()) {
             earliestRobots.insert(tseq);
             latestRobots.insert(tseq);
@@ -399,6 +399,7 @@ int Warehouse::getTimeForSequence(const vector<PackID> &idxSeq, int from, int to
         throw runtime_error("idSeq must have at least one element");
     }
 
+    vector<PackID> shoudlCheck;
     int start = findFirstNonNegOneForward(idxSeq, from, to);
     if(start == to) {
         // This means that the entire sequence doesn't contain any orders
@@ -414,20 +415,46 @@ int Warehouse::getTimeForSequence(const vector<PackID> &idxSeq, int from, int to
     int timeFromStart = pathLengthBetween[0][idxSeq[start] + 2];
     int timeToEnd = pathLengthBetween[idxSeq[end] + 2][1];
     int totalTime = 0;
-    for(int i = from; i < to - 1; i++) {
+    for(int i = from; i < to; i++) {
         int next = i + 1;
         if(idxSeq[i] == -1) {
             continue; // This is a minus one, just keep on going
         }
 
         next = findFirstNonNegOneForward(idxSeq, next, to);
-        if(next >= to - 1) {
+        if(next >= to) {
             break; // This grabs no more orders
         }
         
+        shoudlCheck.push_back(i);
         int timeBetween = pathLengthBetween[idxSeq[i] + 2][idxSeq[next] + 2];
         totalTime += timeBetween;
     }
+/*    bool valid = true;
+    for(int i = 0; i < shoudlCheck.size(); i++) {
+        if(i != shoudlCheck[i]) {
+            cerr << "Should have checked: " << i << ", didn't check it" << endl;
+            valid = false;
+        }
+    }
+    if(shoudlCheck.size() != idxSeq.size()-1) {
+        valid = false;
+        cout << endl;
+        for(int i : shoudlCheck) {
+            cerr << i << " ";
+        }
+        cerr << endl;
+        for(int i = 0; i < idxSeq.size(); i++){
+            cout << idxSeq[i] << " ";
+        }
+        cout << endl;
+        cout << from << ", " << to << endl;
+        cerr << "Should have checked n: " << idxSeq.size() - 1 << ", only checked: " << shoudlCheck.size() << endl;
+    }
+    if(!valid) {
+        throw runtime_error("GGGGGGGGGGGGGGGGGGGGAH");
+    }
+*/
     return totalTime + timeFromStart + timeToEnd;
 }
 

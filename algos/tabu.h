@@ -145,12 +145,13 @@ namespace tabu {
         int capacity = 10;
         TabuList<tuple<int,int,int,int>> tabus;
         TabuList<tuple<int,int,int>> pushTabus;
+        int nRobots;
 
         tuple<int,int,int,int> moveToTuple(int fb, int sb, int fo, int so);
         tuple<int,int,int> movePushToTuple(int fb, int sb, int o);
 
     public:
-        BISwapperSmall(int lifeTime, int capacity) : capacity(capacity), tabus(lifeTime), pushTabus(lifeTime){}
+        BISwapperSmall(int lifeTime, int capacity, int nRobots) : capacity(capacity), tabus(lifeTime), pushTabus(lifeTime), nRobots(nRobots){}
         pair<int, vector<SmallVector<PackID>>> doBestMove(int t, const Warehouse& warehouse, vector<SmallVector<PackID>>& solution);
         void step(int t);
     };
