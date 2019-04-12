@@ -33,11 +33,11 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
 
   //// Add orders to chromosome
   //for (size_t i = 0; i < orders; i++)
-    //baseChromosome.push_back(static_cast<int>(i));
+  //baseChromosome.push_back(static_cast<int>(i));
 
   greedy::greedy greedSolver = greedy::greedy{};
   vector<vector<PackID>> greedySolution = greedSolver.solve(nRobots, robotCapacity, warehouse);
-  
+
   for (auto V: greedySolution) {
     for (auto v: V) {
       baseChromosome.push_back(v);
@@ -52,7 +52,7 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
     throw runtime_error("Cannot plan when more orders than can be picked up.");
 
   // Pad the chromosomes
-  for (size_t i = 0; i < robotCapacity * nRobots - orders; i++)
+  for (size_t i = 0; i < robotCapacity * nRobots - baseChromosome.size(); i++)
     baseChromosome.push_back(-1);
 
   this->chromosomeSize = robotCapacity * nRobots;
@@ -70,7 +70,9 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
 
   Chromosomes chromosomes;
   for (size_t i = 0; i < this->population; i++) {
-    //shuffle(baseChromosome.begin(), baseChromosome.end(), default_random_engine(this->rng()));
+    if (this->randomInitialization) {
+      shuffle(baseChromosome.begin(), baseChromosome.end(), default_random_engine(this->rng()));
+    }
     chromosomes.push_back(baseChromosome);
   }
 
@@ -167,19 +169,19 @@ void ga::Ga::fitness(Chromosomes &chromosomes,
 
   // Ranking
   //sort(this->chromosomeIDs.begin(), this->chromosomeIDs.end(), [this](int i, int j) {
-      //return this->performances[i] < this->performances[j];
-      //});
+  //return this->performances[i] < this->performances[j];
+  //});
 
   //for (int i = 0; i < this->chromosomeIDs.size(); i++) {
-    //fitnesses[this->chromosomeIDs[i]] = this->alpha * i;
+  //fitnesses[this->chromosomeIDs[i]] = this->alpha * i;
   //}
 
   //sort(this->chromosomeIDs.begin(), this->chromosomeIDs.end(), [this](int i, int j) {
-      //return this->differences[i] < this->differences[j];
-      //});
+  //return this->differences[i] < this->differences[j];
+  //});
 
   //for (int i = 0; i < this->chromosomeIDs.size(); i++) {
-    //fitnesses[this->chromosomeIDs[i]] += this->beta * i;
+  //fitnesses[this->chromosomeIDs[i]] += this->beta * i;
   //}
 
   performanceMean /= double(chromosomes.size());

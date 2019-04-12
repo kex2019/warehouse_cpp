@@ -302,12 +302,12 @@ int main() {
 
     // WarehouseInfo, nRobots, robotCapacity
     vector<tuple<WarehouseInfo, int, int>> params{
-        {info_xs, 2, 5},
-        {info_s, 8, 5},
-        {info_m, 16, 5},
-        {info_l, 32, 5},
-        {info_xl, 64, 5},
-        {info_xxl, 128, 5},
+        //{info_xs, 2, 5},
+        //{info_s, 8, 5},
+        //{info_m, 16, 5},
+        //{info_l, 32, 5},
+        //{info_xl, 64, 5},
+        //{info_xxl, 128, 5},
         {info_xxxl, 205, 5},
     };
 
@@ -320,9 +320,10 @@ int main() {
     tabu::StopCondition stop(10000, 60);
     tabu::StopCondition stopheuristic(100000, 60); // The heuristic is so much faster we can do way more iterations. 100000 takes about 35-37 seconds
 
-    auto GaBal = ga::Ga(500, 1000, 1.0, 1.0);
-    auto GaEvo = ga::Ga(250, 1500, 1.0, 1.0);
-    auto GaPop = ga::Ga(1000, 500, 1.0, 1.0);
+    auto GaBal = ga::Ga(500, 10, 1.0, 1.0, false);
+    auto GaEvo = ga::Ga(250, 25, 1.0, 1.0, false);
+    auto GaBalR = ga::Ga(500, 10, 1.0, 1.0, true);
+    auto GaEvoR = ga::Ga(250, 25, 1.0, 1.0, true);
     auto T = tabu::Tabu(stop);
     auto OT = tabu::OldTabu(stop);
     auto TH = tabu::TabuHeuristic(stopheuristic);
@@ -332,7 +333,8 @@ int main() {
     ResultHandler greedyr("results", "greedy");
     ResultHandler gabalr("results", "ga-bal");
     ResultHandler gaevor("results", "ga-evo");
-    ResultHandler gapopr("results", "ga-pop");
+    ResultHandler gabalrr("results", "ga-balr");
+    ResultHandler gaevorr("results", "ga-evor");
     ResultHandler tabur("results", "tabu");
     ResultHandler tabuoldr("results", "old-tabu");
     ResultHandler tabuh("results", "tabu-heuristic");
@@ -341,16 +343,16 @@ int main() {
 
 //    tstgeneration(info_l, seeds);
 //    return 0;
-    /*auto cws = run(cwsr, cw::cw(), params, seeds);
+    auto cws = run(cwsr, cw::cw(), params, seeds);
     auto cmps = run(complsearch, complsearch::complsearch(), params_mini, seeds);
     auto greedys = run(greedyr, greedy::greedy(), params, seeds);
     auto tabu = run(tabur, T, params, seeds);
-    auto tabuold = run(tabuoldr, OT, params, seeds);*/
+    auto tabuold = run(tabuoldr, OT, params, seeds);
     auto tabuheur = run(tabuh, TH, params, seeds);
-/*    auto gabal = run(gabalr, GaBal, params, seeds);
+    auto gabal = run(gabalr, GaBal, params, seeds);
     auto gaevo = run(gaevor, GaEvo, params, seeds);
-    auto gapop = run(gapopr, GaPop, params, seeds);
-*/
+    auto gabalR = run(gabalrr, GaBalR, params, seeds);
+    auto gaevoR = run(gaevorr, GaEvoR, params, seeds);
 /*
     int accCWS = 0;
     int accGreedys = 0;

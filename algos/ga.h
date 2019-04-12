@@ -17,6 +17,7 @@ namespace ga {
     vector<int> chromosomeIDs;
     vector<PackID> apexChromosome;
     double apexPerformance;
+    bool randomInitialization;
 
     vector<double> performances;
     vector<double> differences;
@@ -38,10 +39,12 @@ namespace ga {
     Ga(size_t population, 
         size_t generations, 
         double alpha, 
-        double beta): rng(10), population(population), 
+        double beta,
+        bool randomInitialization): rng(10), population(population), 
     generations(generations), 
     alpha(alpha), 
-    beta(beta) {};
+    beta(beta),
+    randomInitialization(randomInitialization) {};
   };
 }
 
