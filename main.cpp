@@ -343,8 +343,8 @@ int main() {
 
 //    tstgeneration(info_l, seeds);
 //    return 0;
-    auto cws = run(cwsr, cw::cw(), params, seeds);
     auto cmps = run(complsearch, complsearch::complsearch(), params_mini, seeds);
+    auto cws = run(cwsr, cw::cw(), params, seeds);
     auto greedys = run(greedyr, greedy::greedy(), params, seeds);
     auto tabu = run(tabur, T, params, seeds);
     auto tabuold = run(tabuoldr, OT, params, seeds);
