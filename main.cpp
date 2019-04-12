@@ -302,12 +302,12 @@ int main() {
 
     // WarehouseInfo, nRobots, robotCapacity
     vector<tuple<WarehouseInfo, int, int>> params{
-        //{info_xs, 2, 5},
-        //{info_s, 8, 5},
-        //{info_m, 16, 5},
-        //{info_l, 32, 5},
-        //{info_xl, 64, 5},
-        //{info_xxl, 128, 5},
+        {info_xs, 2, 5},
+        {info_s, 8, 5},
+        {info_m, 16, 5},
+        {info_l, 32, 5},
+        {info_xl, 64, 5},
+        {info_xxl, 128, 5},
         {info_xxxl, 205, 5},
     };
 
