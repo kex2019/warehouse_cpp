@@ -303,12 +303,12 @@ int main() {
     // WarehouseInfo, nRobots, robotCapacity
     vector<tuple<WarehouseInfo, int, int>> params{
         {info_xs, 2, 5},
-        {info_s, 8, 5},
-        {info_m, 16, 5},
-        {info_l, 32, 5},
-        {info_xl, 64, 5},
-        {info_xxl, 128, 5},
-        {info_xxxl, 205, 5},
+        //{info_s, 8, 5},
+        //{info_m, 16, 5},
+        //{info_l, 32, 5},
+        //{info_xl, 64, 5},
+        //{info_xxl, 128, 5},
+        //{info_xxxl, 205, 5},
     };
 
     vector<tuple<WarehouseInfo, int, int>> params_mini{
@@ -320,10 +320,8 @@ int main() {
     tabu::StopCondition stop(10000, 60);
     tabu::StopCondition stopheuristic(100000, 60); // The heuristic is so much faster we can do way more iterations. 100000 takes about 35-37 seconds
 
-    auto GaBal = ga::Ga(500, 10, 1.0, 1.0, false);
-    auto GaEvo = ga::Ga(250, 25, 1.0, 1.0, false);
-    auto GaBalR = ga::Ga(500, 10, 1.0, 1.0, true);
-    auto GaEvoR = ga::Ga(250, 25, 1.0, 1.0, true);
+    auto Ga = ga::Ga(700, 1000, 1.0, 1.0, false);
+    auto GaR = ga::Ga(700, 1000, 1.0, 1.0, true);
     auto T = tabu::Tabu(stop);
     auto OT = tabu::OldTabu(stop);
     auto TH = tabu::TabuHeuristic(stopheuristic);
@@ -331,10 +329,8 @@ int main() {
     ResultHandler complsearch("results", "complsearch");
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
-    ResultHandler gabalr("results", "ga-bal");
-    ResultHandler gaevor("results", "ga-evo");
-    ResultHandler gabalrr("results", "ga-balr");
-    ResultHandler gaevorr("results", "ga-evor");
+    ResultHandler gar("results", "ga");
+    ResultHandler garr("results", "gar");
     ResultHandler tabur("results", "tabu");
     ResultHandler tabuoldr("results", "old-tabu");
     ResultHandler tabuh("results", "tabu-heuristic");
@@ -349,10 +345,8 @@ int main() {
     auto tabu = run(tabur, T, params, seeds);
     auto tabuold = run(tabuoldr, OT, params, seeds);
     auto tabuheur = run(tabuh, TH, params, seeds);
-    auto gabal = run(gabalr, GaBal, params, seeds);
-    auto gaevo = run(gaevor, GaEvo, params, seeds);
-    auto gabalR = run(gabalrr, GaBalR, params, seeds);
-    auto gaevoR = run(gaevorr, GaEvoR, params, seeds);
+    auto ga = run(gar, Ga, params, seeds);
+    auto gaR = run(garr, GaR, params, seeds);
 /*
     int accCWS = 0;
     int accGreedys = 0;
