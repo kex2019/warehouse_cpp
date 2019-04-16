@@ -28,6 +28,7 @@ namespace ga {
     double alpha;
     double beta;
     bool randomInitialization;
+    bool stochasticSelection;
     // This vector of vector of ints is a splitted chromosome
     vector<vector<PackID>> solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse);
 
@@ -40,11 +41,13 @@ namespace ga {
         size_t generations, 
         double alpha, 
         double beta,
-        bool randomInitialization): rng(10), population(population), 
+        bool randomInitialization,
+        bool stochasticSelection): rng(10), population(population), 
     generations(generations), 
     alpha(alpha), 
     beta(beta),
-    randomInitialization(randomInitialization) {};
+    randomInitialization(randomInitialization),
+    stochasticSelection(stochasticSelection) {};
   };
 }
 

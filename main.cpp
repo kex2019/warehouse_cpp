@@ -320,20 +320,25 @@ int main() {
     tabu::StopCondition stop(10000, 60);
     tabu::StopCondition stopheuristic(100000, 60); // The heuristic is so much faster we can do way more iterations. 100000 takes about 35-37 seconds
 
-    auto Ga = ga::Ga(700, 1000, 1.0, 1.0, false);
-    auto GaR = ga::Ga(700, 1000, 1.0, 1.0, true);
+    auto Ga = ga::Ga(700, 1000, 1.0, 1.0, false, false);
+    auto GaR = ga::Ga(700, 1000, 1.0, 1.0, true, false);
+    auto GaS = ga::Ga(700, 1000, 1.0, 0.0, false, true);
+    auto GaSR = ga::Ga(700, 1000, 1.0, 0.0, true, true);
+
     auto T = tabu::Tabu(stop);
     auto OT = tabu::OldTabu(stop);
     auto TH = tabu::TabuHeuristic(stopheuristic);
 
-    ResultHandler complsearch("results", "complsearch");
+    ResultHandler complsearch("results", "optimal");
     ResultHandler cwsr("results", "cws");
     ResultHandler greedyr("results", "greedy");
-    ResultHandler gar("results", "ga");
-    ResultHandler garr("results", "gar");
+    ResultHandler gar("results", "guided-ga");
+    ResultHandler garr("results", "guided-ga-r");
+    ResultHandler gasr("results", "stoch-ga");
+    ResultHandler gasrr("results", "stoch-ga-r");
     ResultHandler tabur("results", "tabu");
     ResultHandler tabuoldr("results", "old-tabu");
-    ResultHandler tabuh("results", "tabu-heuristic");
+    ResultHandler tabuh("results", "tabu-heur");
 
     auto seeds = generateSeeds(20);
 
@@ -347,6 +352,8 @@ int main() {
     auto tabuheur = run(tabuh, TH, params, seeds);
     auto ga = run(gar, Ga, params, seeds);
     auto gaR = run(garr, GaR, params, seeds);
+    auto gas = run(gasr, GaS, params, seeds);
+    auto gasR = run(gasrr, GaSR, params, seeds);
 /*
     int accCWS = 0;
     int accGreedys = 0;
