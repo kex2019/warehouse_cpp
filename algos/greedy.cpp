@@ -12,7 +12,7 @@ int findClosest(const vector<vector<int>> & lens, vector<bool> used, int from) {
     return minIdx;
 }
 
-vector<vector<PackID>> greedy::greedy::solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse) {
+vector<vector<PackID>> greedy::greedy::solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse, function<void(long,long)> tscb) {
     size_t nTaken = 0;
     vector<vector<PackID>> batches;
     vector<bool> used(warehouse.getPackageLocations().size(), false);

@@ -80,7 +80,7 @@ vector<PackID> getOffsetSolution(vector<PackID> &solution) {
   return offsetSolution;
 }
 
-vector<vector<PackID>> complsearch::complsearch::solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse) {
+vector<vector<PackID>> complsearch::complsearch::solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse, function<void(long,long)> tscb) {
 
   // Create initial solution
   vector<PackID> solution;

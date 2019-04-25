@@ -39,6 +39,7 @@ class ResultHandler {
     string name;
     ofstream resultFile;
     ofstream robotResultFile;
+    ofstream timeResultFile;
 public: 
     ResultHandler(string dir, std::string name, bool overwrite = false) : name(name) {
         auto flags = ios::out;
@@ -55,11 +56,20 @@ public:
             cerr << "Could not open " << (dir + "/" + name + "_robots.results") << " for writing results, throwing" << endl;
             throw runtime_error("Could not open result file"); 
         }
+
+        timeResultFile.open(dir + "/" + name + "_time.results", flags);
+        if(!timeResultFile.is_open()) {
+            cerr << "Could not open " << (dir + "/" + name + "_time.results") << " for writing results, throwing" << endl;
+            throw runtime_error("Could not open time results file");
+        }
     }
     ~ResultHandler() {
         resultFile.close();
         robotResultFile.close();
+        timeResultFile.close();
     }
+    //time milisecond since launch, score
+    vector<pair<long,long>> timeScores;
     void appendResult(int group, int result, int nRobots, int robotCapacity, int nPackages, int seed, long millis, const vector<int> &robotTravelTimes) {
         int id = nextId();
         resultFile << id << "," << group << "," << result << "," << robotTravelTimes.size() << "," << nRobots << "," << robotCapacity << "," << nPackages << "," << seed << "," << millis << "\n"; 
@@ -74,6 +84,14 @@ public:
         }
         robotResultFile << "\n";
         robotResultFile.flush();
+        for(auto p : timeScores) {
+            timeResultFile << id << "," << group << "," << p.second << "," << p.first << "\n";
+        }
+        timeResultFile.flush();
+        timeScores.clear();
+    }
+    void appendTimeScore(long millis, long score) {
+        timeScores.push_back({millis, score});
     }
     string getName() {
         return name;
@@ -91,7 +109,10 @@ vector<int> run(ResultHandler &resultHandler, T t, const WarehouseInfo& info, in
 
         clock_t begin = clock();
         Warehouse warehouse = generateRandomWarehouse(info, seeds[i]);
-        auto batches = t.solve(nRobots, robotCapacity, warehouse);
+        auto batches = t.solve(nRobots, robotCapacity, warehouse, [&resultHandler](long ms, long score) -> void{
+            cout << "CB: " << ms << "; " << score << endl;
+            resultHandler.appendTimeScore(ms, score);
+        });
         int solTime = evaluateSolutionTime(warehouse, batches, nRobots, robotCapacity);
         results[i] = solTime;
         clock_t end = clock();
@@ -121,7 +142,7 @@ void tst(WarehouseInfo info_xxxl) {
     int capcaity = 8;
     Warehouse warehouse = generateRandomWarehouse(info_xxxl, 1337);
     cw::cw c;
-    auto sol = c.solve(nRobots, capcaity, warehouse);
+    auto sol = c.solve(nRobots, capcaity, warehouse, [](long,long) -> void{});
     vector<SmallVector<PackID>> solution(sol.size());
     for(size_t i = 0; i < sol.size(); i++) {
         for(size_t j = 0; j < sol[i].size(); j++) {
@@ -162,7 +183,7 @@ void tst2(WarehouseInfo info_xxxl) {
     int capcaity = 8;
     Warehouse warehouse = generateRandomWarehouse(info_xxxl, 1337);
     cw::cw c;
-    auto sol = c.solve(nRobots, capcaity, warehouse);
+    auto sol = c.solve(nRobots, capcaity, warehouse, [](long,long) -> void{});
 
     int N = 10000;
     vector<long> clocks(N);
@@ -192,10 +213,10 @@ void tstgeneration(WarehouseInfo info, vector<long> seeds) {
     for(long seed : seeds) {
         cw::cw c;
         Warehouse old = generateRandomWarehouse(info, seed);
-        auto sol = c.solve(NROBOTS, CAPACITY, old);
+        auto sol = c.solve(NROBOTS, CAPACITY, old, [](long,long) -> void{});
         for(int i = 0; i < N; i++) {
             Warehouse war = generateRandomWarehouse(info, seed);
-            auto newsol = c.solve(NROBOTS,CAPACITY,old);
+            auto newsol = c.solve(NROBOTS,CAPACITY,old, [](long,long) -> void{});
             for(int i = 0; i < war.getPathLengths().size(); i++) {
                 for(int j = 0; j < war.getPathLengths()[0].size(); j++) {
                     if(war.getPathLengths()[i][j] != old.getPathLengths()[i][j]) {
@@ -318,7 +339,8 @@ int main() {
     // TODO Run with many more generations and bigger population size
     //tabu::StopCondition stop(80000, 250);
     tabu::StopCondition stop(10000, 60);
-    tabu::StopCondition stopheuristic(100000, 60); // The heuristic is so much faster we can do way more iterations. 100000 takes about 35-37 seconds
+    //tabu::StopCondition stopheuristic(100000, 60); // The heuristic is so much faster we can do way more iterations. 100000 takes about 35-37 seconds
+    tabu::StopCondition stopheuristic(1000, 60);
 
     auto GaBal = ga::Ga(500, 1000, 1.0, 1.0);
     auto GaEvo = ga::Ga(250, 1500, 1.0, 1.0);
@@ -341,16 +363,16 @@ int main() {
 
 //    tstgeneration(info_l, seeds);
 //    return 0;
-    /*auto cws = run(cwsr, cw::cw(), params, seeds);
+    auto cws = run(cwsr, cw::cw(), params, seeds);
     auto cmps = run(complsearch, complsearch::complsearch(), params_mini, seeds);
     auto greedys = run(greedyr, greedy::greedy(), params, seeds);
     auto tabu = run(tabur, T, params, seeds);
-    auto tabuold = run(tabuoldr, OT, params, seeds);*/
+//    auto tabuold = run(tabuoldr, OT, params, seeds);
     auto tabuheur = run(tabuh, TH, params, seeds);
-/*    auto gabal = run(gabalr, GaBal, params, seeds);
+    auto gabal = run(gabalr, GaBal, params, seeds);
     auto gaevo = run(gaevor, GaEvo, params, seeds);
     auto gapop = run(gapopr, GaPop, params, seeds);
-*/
+/**/
 /*
     int accCWS = 0;
     int accGreedys = 0;

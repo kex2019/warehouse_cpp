@@ -5,6 +5,7 @@
 #include <set>
 #include <random>
 #include <time.h>
+#include <functional>
 
 typedef vector<vector<PackID>> Chromosomes;
 
@@ -28,7 +29,7 @@ namespace ga {
     double alpha;
     double beta;
     // This vector of vector of ints is a splitted chromosome
-    vector<vector<PackID>> solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse);
+    vector<vector<PackID>> solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse, function<void(long,long)> tscb);
 
     void fitness(Chromosomes &chromosomes, vector<double> &fitnesses, int nRobots, int robotCapacity, const Warehouse &warehouse);
     vector<int> select(vector<double> &fitnesses, double keepN);

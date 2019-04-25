@@ -5,6 +5,7 @@
 #include <utility>
 #include <set>
 #include <tuple>
+#include <algorithm>
 using namespace std;
 // C&W algorithm for creating batches
 namespace tabu {
@@ -210,19 +211,19 @@ namespace tabu {
     struct Tabu {
         StopCondition stop;
         Tabu(StopCondition stop) : stop(stop) {}
-        vector<vector<PackID>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse);
+        vector<vector<PackID>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse, function<void(long,long)> tscb);
     };
 
     struct TabuHeuristic {
         StopCondition stop;
         TabuHeuristic(StopCondition stop) : stop(stop) {}
-        vector<vector<PackID>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse);
+        vector<vector<PackID>> solve(int nRobots, int robotCapacity, const Warehouse &warehouse, function<void(long,long)> tscb);
     };
 
     struct OldTabu {
         StopCondition stop;
         OldTabu(StopCondition stop) : stop(stop) {}
-        vector<vector<PackID>> solve(int robots, int robotCapacity, const Warehouse &warehouse);
+        vector<vector<PackID>> solve(int robots, int robotCapacity, const Warehouse &warehouse, function<void(long,long)> tscb);
     };
 
 }

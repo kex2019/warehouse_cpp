@@ -263,10 +263,10 @@ void tabu::BISwapper::step(int t) {
     tabus.step(t);
 }
 
-vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
+vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const Warehouse &warehouse, function<void(long,long)> tscb) {
     int lifeTime = 100;
     cw::cw c;
-    auto sol = c.solve(nRobots, robotCapacity, warehouse);
+    auto sol = c.solve(nRobots, robotCapacity, warehouse, tscb);
     //int soltime = evaluateSolutionTime(warehouse, sol, nRobots, robotCapacity);
 
     vector<SmallVector<PackID>> solution(sol.size());
@@ -302,6 +302,8 @@ vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const W
         if(nextBestQuality < bestSolutionScore) {
             bestSolutionScore = nextBestQuality;
             bestSolution = nextBestSolution;
+            clock_t lastTime = clock();
+            tscb((lastTime - totclock) / ((double)CLOCKS_PER_SEC / 1000), bestSolutionScore);
         }
 
         solution = nextBestSolution;
@@ -319,13 +321,15 @@ vector<vector<PackID>> tabu::Tabu::solve(int nRobots, int robotCapacity, const W
         }
     }
 
+    clock_t lastTime = clock();
+    tscb((lastTime - totclock) / ((double)CLOCKS_PER_SEC / 1000), bestSolutionScore);
     return convertedVec;
 }
 
-vector<vector<PackID>> tabu::TabuHeuristic::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
-    int lifeTime = 100;
+vector<vector<PackID>> tabu::TabuHeuristic::solve(int nRobots, int robotCapacity, const Warehouse &warehouse, function<void(long,long)> tscb) {
+    int lifeTime = 10;
     cw::cw c;
-    auto sol = c.solve(nRobots, robotCapacity, warehouse);
+    auto sol = c.solve(nRobots, robotCapacity, warehouse, tscb);
     //int soltime = evaluateSolutionTime(warehouse, sol, nRobots, robotCapacity);
 
     vector<SmallVector<PackID>> solution(sol.size());
@@ -340,6 +344,7 @@ vector<vector<PackID>> tabu::TabuHeuristic::solve(int nRobots, int robotCapacity
     int bestSolutionScore = evaluateSolutionTime(warehouse, bestSolution, nRobots, robotCapacity);
     int t = 0;
 
+    tscb(0, bestSolutionScore);
     BISwapperSmallHeuristic swp(lifeTime, robotCapacity, nRobots);
     clock_t avgclock = 0;
     int N = 0;
@@ -361,8 +366,18 @@ vector<vector<PackID>> tabu::TabuHeuristic::solve(int nRobots, int robotCapacity
         if(nextBestQuality < bestSolutionScore) {
             bestSolutionScore = nextBestQuality;
             bestSolution = nextBestSolution;
+            clock_t lastTime = clock();
+            tscb((lastTime - totclock) / ((double)CLOCKS_PER_SEC / 1000), bestSolutionScore);
         }
 
+/*        double ms = (double)(clock() - lastTime) / ((double)CLOCKS_PER_SEC / 1000);
+        if(ms > 20) {
+            lastTime = clock();
+            cout << "qual: " << quality << endl;
+            
+            lastTime = clock();
+        }
+*/
         solution = nextBestSolution;
         avgclock = (avgclock * N + (clock() - start)) / (N + 1);
         N++;
@@ -377,6 +392,9 @@ vector<vector<PackID>> tabu::TabuHeuristic::solve(int nRobots, int robotCapacity
             convertedVec[i].push_back(bestSolution[i][j]);
         }
     }
+
+    clock_t lastTime = clock();
+    tscb((lastTime - totclock) / ((double)CLOCKS_PER_SEC / 1000), bestSolutionScore);
 
     return convertedVec;
 }
@@ -424,19 +442,20 @@ pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmallHeuristic::doBestMove
     int bestIncrease = -1e6;
     const int originalTime = evaluateSolutionTime(warehouse, solution, nRobots, capacity);
 
-    set<int, greater<>> times;
-    int maxTime = -1;
-    int maxTimeIndex = -1;
+    vector<pair<int,int>> timesSorted;
     for(size_t i = 0; i < solution.size(); i++) {
         int t = warehouse.getTimeForSequence(solution[i]);
-        if(t > maxTime) {
-            maxTimeIndex = i;
-            maxTime = t;
-        }
-        times.insert(t);
+        timesSorted.emplace_back(t, i);
     }
 
-    times.erase(times.begin());
+    std::sort(timesSorted.begin(), timesSorted.end(), greater<>());
+    int maxTimeIndex = timesSorted[0].second;
+    int maxTime = timesSorted[0].first;
+
+    int nextBestIdx = timesSorted[1].second;
+    int nextBestTime = timesSorted[1].first;
+    int thirdBestTime = timesSorted[2].first;
+
     for(size_t i = 0; i < solution.size(); ++i) {
         if(!solution[i].size()) {
             continue;
@@ -453,8 +472,14 @@ pair<int, vector<SmallVector<PackID>>> tabu::BISwapperSmallHeuristic::doBestMove
 //                    const int newTime = warehouse.getTimeForSequence(solution[i]) + warehouse.getTimeForSequence(solution[j]);
  //               int newTime = evaluateSolutionTime(warehouse, solution, nRobots, capacity);
                 int newMaxTime = std::max(warehouse.getTimeForSequence(solution[maxTimeIndex]), warehouse.getTimeForSequence(solution[i]));
+                if(i == nextBestIdx) {
+                    newMaxTime = std::max(newMaxTime, thirdBestTime);
+                } else {
+                    newMaxTime = std::max(newMaxTime, nextBestTime);
+                }
                 // TODO: Fix this increase calculation up
-                int increase = *times.begin() - newMaxTime;
+                int increase = originalTime -  newMaxTime;
+                //int increase = *times.begin() - newMaxTime;
                 //int originalTime = maxTime;
                 if(increase > bestIncrease) {
                     bestIncrease = increase;
@@ -812,15 +837,17 @@ bool tabu::OldSwapGenerator::eof() {
 }
 
 
-vector<vector<PackID>> tabu::OldTabu::solve(int nRobots, int robotCapacity, const Warehouse &warehouse) {
+vector<vector<PackID>> tabu::OldTabu::solve(int nRobots, int robotCapacity, const Warehouse &warehouse, function<void(long,long)> tscb) {
     int lifeTime = 10;
     int nOrders = warehouse.getPackageLocations().size();
     TabuList<tuple<int,int,int,int>> tabus(lifeTime);
     cw::cw c;
-    auto solution = c.solve(nRobots, robotCapacity, warehouse);
+    auto solution = c.solve(nRobots, robotCapacity, warehouse, tscb);
     vector<vector<PackID>> bestSolution = solution;
     int bestSolutionScore = evaluateSolutionTime(warehouse, bestSolution, nRobots, robotCapacity);
     int t = 0;
+    clock_t lastTime = clock();
+    clock_t startTime = clock();
 
     this->stop.start();
     while(!this->stop.isDone(true)) {
@@ -854,6 +881,14 @@ vector<vector<PackID>> tabu::OldTabu::solve(int nRobots, int robotCapacity, cons
                 nSinceSwitch++;
 
             }
+
+            double ms = (double)(clock() - lastTime) / ((double)CLOCKS_PER_SEC / 1000);
+            if(ms > 20) {
+                lastTime = clock();
+                tscb((lastTime - startTime) / ((double)CLOCKS_PER_SEC / 1000), bestSolutionScore);
+                lastTime = clock();
+            }
+
             int nextQuality = evaluateSolutionTime(warehouse, next, nRobots, robotCapacity);
             if(quality * 105 > nextQuality * 100) {
                 if(switched && nextBestQuality > nextQuality) {
@@ -885,5 +920,7 @@ vector<vector<PackID>> tabu::OldTabu::solve(int nRobots, int robotCapacity, cons
         solution = nextBestSolution;
     }
 
+    clock_t lastTimes = clock();
+    tscb((lastTimes - startTime) / ((double)CLOCKS_PER_SEC / 1000), bestSolutionScore);
     return bestSolution;
 }

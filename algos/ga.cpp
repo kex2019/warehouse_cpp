@@ -20,7 +20,7 @@ int calcSwappingDistance(vector<PackID> c1, vector<PackID> c2) {
 
 vector<vector<PackID>> ga::Ga::solve(size_t nRobots, 
     size_t robotCapacity, 
-    const Warehouse &warehouse) {
+    const Warehouse &warehouse, function<void(long,long)> tscb) {
 
   // TODO: Read this paper Genetic Algorithm with adaptive elitist-population strategies for multimodal function optimization
   // To implement adaptive values for keepN and mutateN
@@ -36,8 +36,9 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
     //baseChromosome.push_back(static_cast<int>(i));
 
   greedy::greedy greedSolver = greedy::greedy{};
-  vector<vector<PackID>> greedySolution = greedSolver.solve(nRobots, robotCapacity, warehouse);
-  
+  vector<vector<PackID>> greedySolution = greedSolver.solve(nRobots, robotCapacity, warehouse, tscb);
+  long _tiq = evaluateSolutionTime(warehouse, greedySolution, nRobots, robotCapacity);
+  tscb(0, _tiq);
   for (auto V: greedySolution) {
     for (auto v: V) {
       baseChromosome.push_back(v);
@@ -52,8 +53,8 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
     throw runtime_error("Cannot plan when more orders than can be picked up.");
 
   // Pad the chromosomes
-  for (size_t i = 0; i < robotCapacity * nRobots - orders; i++)
-    baseChromosome.push_back(-1);
+  //for (size_t i = 0; i < robotCapacity * nRobots - orders; i++)
+  //  baseChromosome.push_back(-1);
 
   this->chromosomeSize = robotCapacity * nRobots;
   this->numObsOrders = vector<int>(orders);
@@ -65,8 +66,12 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
     this->chromosomeIDs.push_back(static_cast<int>(i));
 
 
-  if (baseChromosome.size() != this->chromosomeSize)
+  if (baseChromosome.size() != this->chromosomeSize) {
+    cout << robotCapacity * nRobots << endl;
+    cout << orders << endl;
+    cout << baseChromosome.size() << " != " << this->chromosomeSize << endl;
     throw runtime_error("baseChromosome size does not match chromosome size");
+  }
 
   Chromosomes chromosomes;
   for (size_t i = 0; i < this->population; i++) {
@@ -79,6 +84,7 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
   this->differences = vector<double>(chromosomes.size());
 
 
+  long oldApexPerf = apexPerformance;
   // Fit f 
   // f(0) = max_exploration
   // f(generations) = min_exploration
@@ -103,11 +109,12 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
   double selectB = exp(log(selectEnd * 2) / (this->generations + 1e-6));
   double selectA = selectStart;
 
+  clock_t tottime = clock();
   //double selectA
-
   for (size_t g = 0; g < this->generations; g++) {
-    this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
 
+    this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
+    
     int keepN = max(3, int(selectA*pow(selectB, g) * this->population));
 
     vector<int> elitists = this->select(fitnesses, keepN);
@@ -116,6 +123,12 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
 
     //cout << this->apexPerformance << " " << "Keep " << keepN << " " << this->population <<"\n";
     this->mutate(chromosomes, fitnesses);
+
+    if(oldApexPerf < apexPerformance) {
+      clock_t lastTime = clock();
+      tscb((lastTime - tottime) / ((double)CLOCKS_PER_SEC / 1000), -apexPerformance);
+      oldApexPerf = apexPerformance;
+    }
   }
 
   vector<vector<PackID>> solution;
@@ -132,6 +145,9 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
 
   if (solution.size() != nRobots)
     solution.push_back(batch);
+
+  clock_t lastTime = clock();
+  tscb((lastTime - tottime) / ((double)CLOCKS_PER_SEC / 1000), -apexPerformance);
 
   return solution;
 }

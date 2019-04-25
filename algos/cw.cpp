@@ -1,7 +1,7 @@
 #include "cw.h"
 #include <iostream>
 #include <algorithm>
-vector<vector<PackID>> cw::cw::solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse) {
+vector<vector<PackID>> cw::cw::solve(size_t nRobots, size_t robotCapacity, const Warehouse &warehouse, function<void(long,long)> tscb) {
     auto &orderLocations = warehouse.getPackageLocations();
     vector<int> orderIdxs(orderLocations.size());
     vector<int> orderCost(orderLocations.size());
