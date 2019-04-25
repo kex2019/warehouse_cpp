@@ -109,6 +109,9 @@ vector<vector<PackID>> complsearch::complsearch::solve(size_t nRobots, size_t ro
   vector<PackID> bestSolution = solution;
 
   int stop = fact(n);
+  double prev_percent = 0.0;
+  double percent = 0.0;
+  cout << "\n";
   for (int i = 1; i < stop; i++) {
     nextSolution(solution, dir, n);
     int score = evaluateSolutionTime(warehouse, getOffsetSolution(solution), nRobots, robotCapacity);
@@ -117,9 +120,16 @@ vector<vector<PackID>> complsearch::complsearch::solve(size_t nRobots, size_t ro
       bestSolution = getOffsetSolution(solution);
     }
 
-    cout << i << "/" << stop << "            \r";
-  }
+    percent = ((double)(int)(100 * i / stop));
 
+    if (prev_percent != percent) {
+      prev_percent = percent;
+      cout << "       \rProgress " << percent;
+      cout.flush();
+    }
+
+  }
+  cout << "\n";
   vector<vector<PackID>> fsolution;
   vector<PackID> batch;
   for (size_t i = 0; i < nRobots * robotCapacity; i++) {

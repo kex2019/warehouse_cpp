@@ -8,7 +8,7 @@
 
 // Or maybe: Adjacent Swaps on Strings
 // If we need linear, use Cayley distance? (eg. cycles in the permutation). compose c1 with the inverse of c2 and count the number of cycles
-int calcSwappingDistance(vector<PackID> c1, vector<PackID> c2) {
+int calcSwappingDistance(vector<PackID> &c1, vector<PackID> &c2) {
   int nSame = 0;
   for(size_t i = 0; i < c1.size(); i++) {
     if(c1[i] == c2[i])
@@ -33,7 +33,7 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
 
   //// Add orders to chromosome
   //for (size_t i = 0; i < orders; i++)
-    //baseChromosome.push_back(static_cast<int>(i));
+  //baseChromosome.push_back(static_cast<int>(i));
 
   greedy::greedy greedSolver = greedy::greedy{};
   vector<vector<PackID>> greedySolution = greedSolver.solve(nRobots, robotCapacity, warehouse, tscb);
@@ -75,7 +75,9 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
 
   Chromosomes chromosomes;
   for (size_t i = 0; i < this->population; i++) {
-    //shuffle(baseChromosome.begin(), baseChromosome.end(), default_random_engine(this->rng()));
+    if (this->randomInitialization) {
+      shuffle(baseChromosome.begin(), baseChromosome.end(), default_random_engine(this->rng()));
+    }
     chromosomes.push_back(baseChromosome);
   }
 
@@ -116,12 +118,12 @@ vector<vector<PackID>> ga::Ga::solve(size_t nRobots,
     this->fitness(chromosomes, fitnesses, nRobots, robotCapacity, warehouse);
     
     int keepN = max(3, int(selectA*pow(selectB, g) * this->population));
+    //int keepN = 3;
 
-    vector<int> elitists = this->select(fitnesses, keepN);
+    auto elitists = this->select(fitnesses, keepN);
 
     this->crossover(chromosomes, elitists);
 
-    //cout << this->apexPerformance << " " << "Keep " << keepN << " " << this->population <<"\n";
     this->mutate(chromosomes, fitnesses);
 
     if(oldApexPerf < apexPerformance) {
@@ -183,42 +185,47 @@ void ga::Ga::fitness(Chromosomes &chromosomes,
 
   // Ranking
   //sort(this->chromosomeIDs.begin(), this->chromosomeIDs.end(), [this](int i, int j) {
-      //return this->performances[i] < this->performances[j];
-      //});
+  //return this->performances[i] < this->performances[j];
+  //});
 
   //for (int i = 0; i < this->chromosomeIDs.size(); i++) {
-    //fitnesses[this->chromosomeIDs[i]] = this->alpha * i;
+  //fitnesses[this->chromosomeIDs[i]] = this->alpha * i;
   //}
 
   //sort(this->chromosomeIDs.begin(), this->chromosomeIDs.end(), [this](int i, int j) {
-      //return this->differences[i] < this->differences[j];
-      //});
+  //return this->differences[i] < this->differences[j];
+  //});
 
   //for (int i = 0; i < this->chromosomeIDs.size(); i++) {
-    //fitnesses[this->chromosomeIDs[i]] += this->beta * i;
+  //fitnesses[this->chromosomeIDs[i]] += this->beta * i;
   //}
 
-  performanceMean /= double(chromosomes.size());
-  differenceMean /= double(chromosomes.size());
+  if (!this->stochasticSelection) {
+    performanceMean /= double(chromosomes.size());
+    differenceMean /= double(chromosomes.size());
 
-  double performanceStd = 0.0;
-  double differenceStd = 0.0;
-  //Calculate variances
-  for (size_t i = 0; i < chromosomes.size(); i++) {
-    performanceStd += (performances[i] - performanceMean) * (performances[i] - performanceMean);
-    differenceStd += (differences[i] - differenceMean) * (differences[i] - differenceMean);
+    double performanceStd = 0.0;
+    double differenceStd = 0.0;
+    //Calculate variances
+    for (size_t i = 0; i < chromosomes.size(); i++) {
+      performanceStd += (performances[i] - performanceMean) * (performances[i] - performanceMean);
+      differenceStd += (differences[i] - differenceMean) * (differences[i] - differenceMean);
+    }
+
+    // Calculate sample standard deviation
+    performanceStd /= sqrt(chromosomes.size() - 1);
+    differenceStd /= sqrt(chromosomes.size() - 1);
+
+    // Now weigh the normalized scores
+    for (size_t i = 0; i < chromosomes.size(); i++) {
+      fitnesses[i] = this->alpha * ((performances[i] - performanceMean) / (performanceStd + 1e-4)) 
+        + this->beta * ((differences[i] - differenceMean) / (differenceStd + 1e-4));
+    }
+  } else {
+    for (size_t i = 0; i < chromosomes.size(); i++) {
+      fitnesses[i] = performances[i];
+    }
   }
-
-  // Calculate sample standard deviation
-  performanceStd /= sqrt(chromosomes.size() - 1);
-  differenceStd /= sqrt(chromosomes.size() - 1);
-
-  // Now weigh the normalized scores
-  for (size_t i = 0; i < chromosomes.size(); i++) {
-    fitnesses[i] = this->alpha * ((performances[i] - performanceMean) / (performanceStd + 1e-4)) 
-      + this->beta * ((differences[i] - differenceMean) / (differenceStd + 1e-4));
-  }
-
 
   return;
 }
@@ -226,15 +233,57 @@ void ga::Ga::fitness(Chromosomes &chromosomes,
 vector<int> ga::Ga::select(vector<double> &fitnesses, 
     double keepN) {
 
-  sort(this->chromosomeIDs.begin(), this->chromosomeIDs.end(), [fitnesses](int i, int j) {
-      return fitnesses[i] > fitnesses[j];
-      });
+  if (this->stochasticSelection) {
+    //invcdf picking
+    double minimum = -1000000.0;
+    for (auto f: fitnesses) {
+      minimum = min(minimum, f);
+    }
 
-  vector<int> elitists;
-  for (int i = 0; i < keepN; i++)
-    elitists.push_back(this->chromosomeIDs[i]);
+    minimum = abs(minimum);
+    for (int i = 0; i < fitnesses.size(); i++) {
+      fitnesses[i] += minimum;
+    }
 
-  return elitists;
+    double fitnessL1Norm = 0.0;
+    for (auto f: fitnesses) {
+      fitnessL1Norm += f;
+    }
+
+    vector<double> fitnessIntegral(fitnesses.size());
+    double riemannSum = 0.0;
+    for (int i = 0; i < fitnesses.size(); i++) {
+      riemannSum += fitnesses[i] / fitnessL1Norm;
+      fitnessIntegral[i] = riemannSum; 
+    }
+
+
+    vector<int> survivors;
+    double cdfDomain = 0.0;
+    for (int i = 0; i < (int)keepN; i++) {
+      cdfDomain = (double)(this->rng() % 1000000)/1000000.0;
+
+      int j = 0;
+      while (j < fitnessIntegral.size() && fitnessIntegral[j++] < cdfDomain);
+      if (j == fitnessIntegral.size())
+        survivors.push_back(j-1);
+      else
+        survivors.push_back(j-1);
+    }
+
+    return survivors;
+  } else {
+    //Elitist picking
+    sort(this->chromosomeIDs.begin(), this->chromosomeIDs.end(), [fitnesses](int i, int j) {
+        return fitnesses[i] > fitnesses[j];
+        });
+
+    vector<int> elitists;
+    for (int i = 0; i < keepN; i++)
+      elitists.push_back(this->chromosomeIDs[i]);
+
+    return elitists;
+  }
 }
 
 void ga::Ga::crossover(Chromosomes &chromosomes, 
@@ -250,11 +299,24 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
       int e2 = elitists[this->rng() % elitists.size()];
 
 
-      // Partition indexes
+      // Random positional Crossover/*s*/
+      //vector<bool> whomTake(this->chromosomeSize);
+      //for (int j = 0; j < this->chromosomeSize; j++)
+      //whomTake[j] = (bool)(this->rng() % 2);
+
+      //for (int j = 0; j < this->chromosomeSize; j++) {
+      //if (whomTake[j]) {
+      //chromosomes[i][j] = chromosomes[e1][j];
+      //} else {
+      //chromosomes[i][j] = chromosomes[e2][j];
+      //}
+      //}
+
+
+      // Chunck Crossovers
       int p1 = min((int)(this->rng() % this->chromosomeSize) + 5, (int)(chromosomeSize - 1));
       int p2 = this->rng() % (p1 - 1);
 
-      // Combine the elitists into the new chromosome
       for (int j = p2; j < p1; j++)
         chromosomes[i][j] = chromosomes[e1][j];
 
@@ -264,6 +326,10 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
       for (size_t j = p1; j < this->chromosomeSize; j++)
         chromosomes[i][j] = chromosomes[e2][j];
 
+
+
+
+      // Code below fixes the chromosome into a valid solution
       // Empty data (For chromosome validation)
       fill(this->numObsOrders.begin(), this->numObsOrders.end(), 0);
       // vector with num orders
@@ -312,12 +378,26 @@ void ga::Ga::crossover(Chromosomes &chromosomes,
 
 void ga::Ga::mutate(Chromosomes &chromosomes, vector<double> &fitnesses) {
 
+  //  Flipping random bits mutation
   for (size_t i = 0; i < chromosomes.size(); i++) {
-    int mutate = 1; //int(a*pow(b, fitnesses[i] + offset) * mutations);
+    int mutate = 1 + this->rng() % 3; 
     for (int j = 0; j < mutate; j++) {
       int i1 = this->rng() % this->chromosomeSize;
       int i2 = this->rng() % this->chromosomeSize;
       swap(chromosomes[i][i1], chromosomes[i][i2]);
     }
   }
+
+  // Moving Chunck mutation
+  //for (size_t i = 0; i < chromosomes.size(); i++) {
+  //int chunksize = 1 + this->rng() % 10; 
+  //int chunkstart = this->rng() % (this->chromosomeSize - chunksize);
+  //int chunckend = this->rng() % (this->chromosomeSize - chunksize);
+
+  //for (int j = 0; j < chunksize; j++) {
+  //swap(chromosomes[i][chunkstart+j], chromosomes[i][chunckend+j]);
+  //}
+  //}
+
+
 }
